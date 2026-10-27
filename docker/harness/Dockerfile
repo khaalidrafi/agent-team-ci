@@ -25,7 +25,13 @@ FROM debian:stable-slim
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      git curl ca-certificates bzip2 jq procps nodejs npm \
+      git curl ca-certificates bzip2 jq procps \
+ && rm -rf /var/lib/apt/lists/*
+
+# --- Node 22 (Owner order 2026-10-27 #hq fleet: pi needs Node >= 22.19,
+#     mcode needs 22.19+/24-26; debian stable ships an older nodejs) -------
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
 
 # --- OpenCode body (preinstalled once, reused every turn) -------------------
@@ -78,6 +84,71 @@ RUN export HOME=/usr/local/lib/qoder-home \
 RUN npm install -g @tencent-ai/codebuddy-code \
  && timeout 60 codebuddy --version
 
+# --- pi body (earendil-works/pi 1.4.x — "a minimal, extensible agent
+#     harness that you can make your own"; Owner order 2026-10-27 #hq:
+#     look into its configs and customize it for agent-team usage).
+#     CUSTOMIZED: the global law is baked into ~/.pi/agent/AGENTS.md —
+#     pi's own docs (docs/configuration.md, read 2026-10-27): the agent
+#     directory ~/.pi/agent holds AGENTS.md as "user instructions applied
+#     across working directories". Headless: `pi --print`, `--mode json`.
+#     Brains: BYOK via env vars / auth.json — keys are env-injected per
+#     run, NEVER baked. npm --ignore-scripts per upstream README. ---
+RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent \
+ && timeout 60 pi --version
+
+# --- dsh body (DeepSeek Harness, @deepseek-ai/dsh 0.2.x — DEV PREVIEW,
+#     breaking changes expected; Owner order 2026-10-27 #hq: add it).
+#     Headless bundle: one-shot Agent/Session runner, no Host/HTTP —
+#     CI-ready. Pure BYOK (DeepSeek key + anthropic/openai/moonshotai/zai
+#     + custom OpenAI/Anthropic-compatible gateways): creds live in
+#     $DSH_HOME/.credentials.yaml and are env-injected per run, NEVER
+#     baked. The global law rides ci/bin/law_brief.sh + project
+#     AGENTS.md; no global rules file is documented for dsh. ---
+RUN npm install -g @deepseek-ai/dsh \
+ && timeout 60 dsh --version
+
+# --- mcode body (MiniMax Code CLI 0.7.x). Headless: `mcode exec`
+#     (PROVEN 2026-10-22 end-to-end); TUI `mcode`; `mcode init .` writes
+#     the project AGENTS.md (project law auto-read). AUTH: repo secret
+#     MCODE_AUTH_JSON -> CI writes ~/.minimax/auth/prod/en/mcode-public/
+#     auth.json + auth-state.json at run time (CI-seedable refresh grant,
+#     no PKCE needed — CANDIDATES.org profile). ASK-FIRST BODY (Owner
+#     order 2026-10-27 #hq): the M-Plan-Free quota is LIMITED — the Lead
+#     asks the Owner BEFORE a lane burns mcode credit. ---
+RUN npm install -g @minimax-ai/code \
+ && timeout 60 mcode --version
+
+# --- Cursor CLI body (Anysphere; Owner correction 2026-10-27 #hq:
+#     "Cursor, Copilot also have CLI"). Install verified headless
+#     2026-10-27 (cursor/2026.10.22); the launcher resolves its own dir
+#     through symlinks, so a /usr/local/bin symlink is safe. Headless:
+#     `agent -p "..."` (--output-format text|json|stream-json, --trust).
+#     Auth: CURSOR_API_KEY env per run — NEVER baked. Law: Cursor reads
+#     AGENTS.md at the project root/subdirs + .cursor/rules; its "User
+#     Rules" are dashboard-only (no file path) so the GLOBAL law rides
+#     ci/bin/law_brief.sh. ASK-FIRST BODY: Cursor usage is
+#     credit-limited — ask the Owner before a lane burns it. ---
+RUN export HOME=/usr/local/lib/cursor-home \
+ && curl -fsSL https://cursor.com/install | bash \
+ && chmod -R a+rX /usr/local/lib/cursor-home \
+ && ln -sf /usr/local/lib/cursor-home/.local/bin/agent /usr/local/bin/agent \
+ && ln -sf /usr/local/lib/cursor-home/.local/bin/cursor-agent /usr/local/bin/cursor-agent \
+ && timeout 60 agent --version
+
+# --- GitHub Copilot CLI body (@github/copilot 1.0.x; Owner correction
+#     2026-10-27 #hq: "Copilot also has CLI"). Installer verified
+#     headless 2026-10-27 (PREFIX=/usr/local). Headless: `copilot -p
+#     "..."` (--allow-tool / --allow-all-tools). Auth: GH_TOKEN or
+#     GITHUB_TOKEN env (fine-grained PAT with the "Copilot Requests"
+#     permission) — env-injected per run, NEVER baked. Custom
+#     instructions: repo .github/copilot-instructions.md (+ AGENTS.md at
+#     the project root); no VERIFIED user-level rules file for the CLI,
+#     so the GLOBAL law rides ci/bin/law_brief.sh. ASK-FIRST BODY
+#     (Owner 2026-10-27 #hq): EVERY prompt burns one premium request
+#     from the monthly quota — ask the Owner before a lane uses it. ---
+RUN curl -fsSL https://gh.io/copilot-install | PREFIX=/usr/local bash \
+ && timeout 60 copilot --version
+
 # --- OMP body (oh-my-pi, omp.sh — Owner roster TEAM.md MODELS/Local).
 #     Owner order 2026-10-27 #hq: "where is OMP?" — it sat roster-only,
 #     never baked. Binary install verified headless 2026-10-27: static
@@ -124,12 +195,23 @@ COPY ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
 #             rules (omp.sh/docs/context-files, read 2026-10-27); project
 #             AGENTS.md auto-discovered (agents-md provider walks up to the
 #             repo root).
+#   pi        ~/.pi/agent/AGENTS.md — "user instructions applied across
+#             working directories" (docs/configuration.md, read
+#             2026-10-27); project .pi/ + AGENTS.md context files
+#             auto-discovered.
+#   dsh /     NO verified global rules file (dsh is DEV PREVIEW; Cursor's
+#   Cursor /  "User Rules" are dashboard-only; Copilot CLI documents only
+#   Copilot / repo-level instructions; mcode reads the project AGENTS.md
+#   mcode     written by `mcode init .`) — their GLOBAL law rides
+#             ci/bin/law_brief.sh, their LOCAL law is the repo's root
+#             AGENTS.md. No invented paths.
 COPY ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.config/goose/.goosehints
 COPY ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
 COPY ci/AGENTS.md /home/agent/.qoder/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.omp/agent/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.omp/agent/RULES.md
+COPY ci/AGENTS.md /home/agent/.pi/agent/AGENTS.md
 RUN chown -R agent:agent /home/agent
 
 ENV HOME=/home/agent \
