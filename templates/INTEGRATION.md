@@ -41,15 +41,17 @@ a local fork without an upstream PR is a compliance violation.
 ## 3. Dual-law delivery (bake + native read; brief for slot-less bodies)
 
 The global law reaches BAKED bodies (OpenCode, Goose, Qoder, CodeBuddy,
-OMP, pi) through the harness build — `ci/AGENTS.md` lands in every
-verified global/user rules slot — and the local law is the repo's own
-root `AGENTS.md`, auto-read from the working directory. Baked bodies
-run prepend-free (Owner 2026-10-27 #hq: "no need to prepend with
-law_brief.sh").
+OMP, pi, Copilot) through the harness build — `ci/AGENTS.md` lands in
+every verified global/user rules slot — and the local law is the
+repo's own root `AGENTS.md`, auto-read from the working directory.
+Baked bodies run prepend-free (Owner 2026-10-27 #hq: "no need to
+prepend with law_brief.sh").
 
-The FOUR bodies without a verified global slot (dsh / Cursor / Copilot /
+The THREE bodies without a verified global slot (dsh / Cursor /
 mcode) MUST still compose their prompt through the brief — otherwise
-they see only the local law and run global-lawless:
+they see only the local law and run global-lawless (Copilot DOES have
+a verified user-level path, $HOME/.copilot/copilot-instructions.md,
+and is baked):
 
 ```bash
 printf '%s\n' "$SEGMENT_BRIEF" > /tmp/segment-brief.txt
