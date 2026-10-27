@@ -9,12 +9,12 @@ Owner orders landed 2026-10-27 (#hq):
    harness Dockerfile, agent configs, law wiring and commit guard live HERE,
    once, versioned per consuming repo by its submodule pointer.
 2. **"Configure ALL agents in Docker to read both global and local
-   AGENTS.md"** — `bin/law_brief.sh` composes GLOBAL LAW + LOCAL LAW +
-   segment brief for every lane (agent bodies and raw-curl alike); the
-   canonical harness also bakes the global law into each body's
-   verified global/user rules slot (OpenCode, Goose, Qoder, CodeBuddy,
-   OMP, pi — dsh / Cursor / Copilot / mcode have no verified global
-   slot and ride the brief).
+   AGENTS.md"** — the canonical harness bakes the global law into each
+   body's verified global/user rules slot (OpenCode, Goose, Qoder,
+   CodeBuddy, OMP, pi) and bodies auto-read the repo's own AGENTS.md;
+   `bin/law_brief.sh` is OPTIONAL for lanes without a baked slot —
+   Owner 2026-10-27 #hq: "no need to prepend with law_brief.sh" (dsh /
+   Cursor / Copilot / mcode have no verified global slot).
 3. **"Store global AGENTS.md in your CI submodule"** — `AGENTS.md` here IS
    the canonical global law. A consuming repo pins a law version by pinning
    the submodule pointer; updates propagate as ordinary pointer bumps.
@@ -24,7 +24,7 @@ Owner orders landed 2026-10-27 (#hq):
 ```
 AGENTS.md                  canonical GLOBAL law (no commit policy — the commit
                            rule lives in the agent-team prompt templates)
-bin/law_brief.sh           dual-law brief composer (the no-lawless-agent mechanism)
+bin/law_brief.sh           dual-law brief composer (OPTIONAL — lanes without a baked slot)
 bin/commit_msg_guard.sh    commit-substance gate (bans "ci turn"/"stall"-style subjects)
 docker/harness/Dockerfile  canonical agent-harness image (bodies preinstalled, laws baked/mounted)
 docker/harness/*.json|yaml shared agent configs (opencode providers, goose)
@@ -39,9 +39,9 @@ git submodule add https://github.com/khaalidrafi/agent-team-ci.git ci
 ```
 
 Then follow `templates/INTEGRATION.md`: submodule-aware checkouts, harness
-build from your repo root, every lane briefed via `bin/law_brief.sh`,
-`bin/commit_msg_guard.sh` gating your merge, commit generators fixed to
-descriptive subjects.
+build from your repo root (the bake delivers the law — no `bin/law_brief.sh`
+prepend required, Owner 2026-10-27 #hq), `bin/commit_msg_guard.sh` gating
+your merge, commit generators fixed to descriptive subjects.
 
 ## Laws this kit enforces
 

@@ -3,7 +3,10 @@
 #+LAW: Owner 2026-10-26 #hq — "Upload a common teamify template to paste.rs which can be used across repo, by appending `repo:`. No PAT!"
 #+LAW: Owner 2026-10-26 #hq, superseding order the same day — "No more paste.rs!"
 #+LAW: Owner 2026-10-26 #hq — "I told you to store TEAMIFY-COMMON.org in vault, bruh, not here!" + "Where is the whole prompt?!"
-#+LAW: DISTRIBUTION — VAULT ONLY (khaalidrafi/vault, private repo, @ main):
+#+LAW: DISTRIBUTION — CI KIT ONLY (khaalidrafi/agent-team-ci, templates/,
+#+LAW:   @ 9143ef1+; Owner 2026-10-27 #hq: "move AGENTS.md and the prompt
+#+LAW:   from vault to khaalidrafi/agent-team-ci" — supersedes the
+#+LAW:   VAULT-ONLY order of 2026-10-26):
 #+LAW: - TEAMIFY-COMMON.org (THIS wrapper: the Director's recipe),
 #+LAW: Owner 2026-10-26 #hq — "common MUST go at first, everywhere.
 #+LAW:   And, remove the dumb 'part -X'. COMMON, TEAMIFY are just
