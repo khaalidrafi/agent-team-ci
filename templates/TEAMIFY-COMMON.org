@@ -1,0 +1,63 @@
+#+TITLE: TEAMIFY-COMMON.org — the ONE common teamify wrapper (any repo via `repo:`)
+#+ROLE: the Director's assembly recipe; the AGENT-FACING artifact is the WHOLE prompt beside it (TEAMIFY-COMMON-PROMPT.org) — dispatch THAT to the agent. The prompt carries NO Director sections: HOW TO USE + FILL BLOCK live HERE only (Owner 2026-10-26 #hq)
+#+LAW: Owner 2026-10-26 #hq — "Upload a common teamify template to paste.rs which can be used across repo, by appending `repo:`. No PAT!"
+#+LAW: Owner 2026-10-26 #hq, superseding order the same day — "No more paste.rs!"
+#+LAW: Owner 2026-10-26 #hq — "I told you to store TEAMIFY-COMMON.org in vault, bruh, not here!" + "Where is the whole prompt?!"
+#+LAW: DISTRIBUTION — VAULT ONLY (khaalidrafi/vault, private repo, @ main):
+#+LAW: - TEAMIFY-COMMON.org (THIS wrapper: the Director's recipe),
+#+LAW: Owner 2026-10-26 #hq — "common MUST go at first, everywhere.
+#+LAW:   And, remove the dumb 'part -X'. COMMON, TEAMIFY are just
+#+LAW:   template names!!" — the assembled prompt leads with COMMON and
+#+LAW:   its sections carry the bare template names: COMMON, TEAMIFY,
+#+LAW:   CANDIDATES (no PART-X labels anywhere).
+#+LAW: - TEAMIFY-COMMON-PROMPT.org (the WHOLE assembled prompt — what the
+#+LAW:   agent actually receives; carries READ FIRST: read global AGENTS.md,
+#+LAW:   read project-local AGENTS.md, audit the repo),
+#+LAW: - AGENTS.md (the global law, embedded IN FULL in READ FIRST),
+#+LAW: - .env (ALL secrets and keys),
+#+LAW: plus the sealed Actions secret TEAMIFY_COMMON_ORG (this wrapper's
+#+LAW: bytes) on the 3 team repos. No paste service, no public file, ever.
+#+BUILDER: assembled byte-faithfully by the Lead's build script (scripts/build_common_teamify_prompt.py, sandbox ops tooling) from THIS file + TEAMIFY.org + COMMON.org + the TEAM CI brief — rebuild after template changes, never hand-edit a built prompt, never upload the build anywhere
+
+* HOW TO USE (Director)
+
+- Dispatch the WHOLE prompt (TEAMIFY-COMMON-PROMPT.org in this vault)
+  to the agent in ONE fresh chat with the target repo's Lead. Append
+  the repo: line as the LAST line (see FILL BLOCK), then paste the
+  prompt whole and in order. Every section is load-bearing.
+- THIS wrapper is the recipe the builder follows: NOT-TOUCH law + TEAM
+  CI brief + COMMON + READ FIRST + TEAMIFY + CANDIDATES. COMMON goes
+  FIRST, the sections carry their bare template names, and there are no
+  "PART X" labels (Owner 2026-10-26 #hq). Regenerate the built prompt
+  after any law change; never hand-edit a built prompt.
+- NO DIRECTOR SECTIONS IN THE PROMPT (Owner 2026-10-26 #hq: "Remove
+  how to use and fill block since they are irrelevant for agents"):
+  HOW TO USE + FILL BLOCK live in THIS file only. The built prompt
+  opens with the NOT-TOUCH law and is agent-facing end to end.
+- COMMON TEMPLATE (Owner 2026-10-26 #hq): this ONE prompt teamifies
+  ANY repo — the repo: line is the only per-repo input. No other
+  hand-edits, no forks of this file.
+- NO PAT IN THE TEMPLATE (Owner 2026-10-26 #hq): the prompt is
+  dispatched by the Director and travels through relays, so it carries
+  NO credential, wherever it is hosted or copied.
+  AUTH TRAVELS WITH THE PROMPT: the Director APPENDS the PAT to the
+  dispatched prompt, right after the repo: line. The Lead uses it
+  for git push ONLY: never echo it back, never store it in
+  files/commits/board/logs, never cite it in evidence. Auth
+  failure = the Lead STOPS and reports; it never asks for tokens
+  in chat.
+- Mode: TEAMIFY (existing project, no team setup)
+
+* FILL BLOCK (Director)
+
+- APPEND AS THE LAST LINE of the prompt: repo: <owner>/<slug>
+  (the ONLY fill; a public GitHub repo; team-truth branch: ai/main)
+- AUTH APPENDIX (Director, at dispatch): the PAT appended right
+  after the repo: line — the prompt template itself never carries
+  one (zero-credential law); the receiving Lead: push-only use,
+  never echo, never store, never cite.
+- REPO: derived from the repo: line — https://github.com/<owner>/<slug>
+- PROJECT: derived by the Lead from the repo itself (README, docs,
+  code tree) and stated back in the Lead's first chat reply
+- NOT-TOUCH: {{NOT_TOUCH}}
+  (the builder carries this law into the prompt's NOT-TOUCH section)
