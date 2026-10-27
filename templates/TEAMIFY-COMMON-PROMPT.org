@@ -4,9 +4,9 @@
 # only per-repo input being the appended last line `repo:` (the
 # Director appends it + the PAT at dispatch).  NO PAT.
 # AGENT-FACING ONLY: the Director's own sections live in the recipe
-# (khaalidrafi/vault TEAMIFY-COMMON.org), never in this prompt
-# (Owner 2026-10-26 #hq).  Regenerate from templates, never
-# hand-edit a built prompt; the distribution is the VAULT, never
+# (TEAMIFY-COMMON.org beside it in ci/templates/), never in
+# this prompt (Owner 2026-10-26 #hq).  Regenerate from templates, never
+# hand-edit a built prompt; the distribution is the CI KIT, never
 # an upload.
 
 * NOT-TOUCH — read-only paths (the Director's law for this dispatch)
@@ -55,11 +55,12 @@
 - DUAL LAW (Owner orders 2026-10-27 #hq: the CI kit is a reusable
   submodule named agent-team-ci, and ALL agents in Docker read BOTH
   AGENTS.md files): every repo consumes the kit as the ci/ submodule.
-  GLOBAL LAW is ci/AGENTS.md — the canonical global AGENTS.md,
-  byte-identical to khaalidrafi/vault @ main. LOCAL LAW is the repo's
-  own root AGENTS.md. Every lane's prompt is composed as GLOBAL + LOCAL
-  + the segment brief through ci/bin/law_brief.sh — no agent runs
-  lawless. The canonical harness Dockerfile (ci/docker/harness/Dockerfile)
+  GLOBAL LAW is ci/AGENTS.md — the canonical global AGENTS.md (relocated
+  from vault into this kit, Owner 2026-10-27 #hq). LOCAL LAW is the repo's
+  own root AGENTS.md. The global law is BAKED into every body's global
+  slot at harness build; composing prompts via ci/bin/law_brief.sh is
+  OPTIONAL (Owner 2026-10-27 #hq: "no need to prepend with
+  law_brief.sh"). The canonical harness Dockerfile (ci/docker/harness/Dockerfile)
   preinstalls TEN bodies — OpenCode, Goose, Qoder, CodeBuddy, OMP, pi,
   dsh, Cursor, Copilot and mcode — and bakes the global law into each
   body's VERIFIED config slot (the Dockerfile header lists every body's
@@ -814,7 +815,7 @@ Owner-bound entry to him verbatim on #hq (no chat mirror since
 - COMPLIANCE AUDIT (Owner 2026-10-27 #hq: "EVERY team MUST audit their
   whole repo for compliance with global AGENTS.md and refactor the code
   if necessary!"): every team sweeps its WHOLE repo against the global
-  AGENTS.md (canonical copy: khaalidrafi/vault AGENTS.md @ main) —
+  AGENTS.md (canonical copy: ci/AGENTS.md in this kit) —
   commit discipline, code law, search tools, docs — and REFACTORS what
   violates it. Dedicated small commits on ai/main, one concern per
   commit, one model's authorship, full trailers. The teamify commit
@@ -962,8 +963,8 @@ you are about to adopt. Three steps, in order:
 ** Step 1 — read the GLOBAL AGENTS.md (embedded below IN FULL)
 
 - this is the Director's global law for every LLM agent; it travels
-  with the prompt so you never need vault access — the canonical
-  copy lives in khaalidrafi/vault AGENTS.md @ main,
+  with the prompt — the canonical copy is ci/AGENTS.md in this kit
+  (relocated from vault, Owner 2026-10-27 #hq),
 
 - every rule in it binds you for this whole task: search tools,
   system-load discipline, machine care, reporting.
@@ -1129,12 +1130,14 @@ you are about to adopt. Three steps, in order:
 
 * TEAMIFY — the task (existing project, no team setup)
 
-** COMMON TEMPLATE — VAULT ONLY (Owner 2026-10-26 #hq: "No more paste.rs!"
-  + "store TEAMIFY-COMMON.org in vault, not here")
+** COMMON TEMPLATE — KIT ONLY (Owner 2026-10-27 #hq: "move AGENTS.md and
+  the prompt from vault to khaalidrafi/agent-team-ci"; earlier: "No more
+  paste.rs!")
 - The ONE common teamify template (any repo via an appended
-  `repo:` line) lives in the VAULT, never in a public file and never
+  `repo:` line) lives in the CI KIT, never in a public file and never
   on a paste service:
-  - khaalidrafi/vault (private repo), path TEAMIFY-COMMON.org @ main,
+  - khaalidrafi/agent-team-ci, path templates/TEAMIFY-COMMON.org
+    (beside this prompt; relocated from vault),
   - sealed Actions secret TEAMIFY_COMMON_ORG on agent-team.el,
     docneural, admincraft (the CI-facing copy of the same bytes).
 - Zero-credential law unchanged: the template carries NO PAT — the
@@ -1156,7 +1159,7 @@ project into a team project — adopt, don't rebuild.
 
 - Adopt the existing project: read it fully before touching anything.
 - Audit the WHOLE repo for compliance with the global AGENTS.md law
-  (canonical copy: khaalidrafi/vault AGENTS.md @ main) and REFACTOR
+  (canonical copy: ci/AGENTS.md in this kit) and REFACTOR
   what violates it — dedicated small commits on ai/main, never inside
   the teamify commit (COMMON LAWS: COMPLIANCE AUDIT).
 - Add the team layer (agent-team/ files) without disturbing existing code.

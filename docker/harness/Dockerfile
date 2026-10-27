@@ -12,9 +12,10 @@
 #                 global/user rules slot below; present in every repo, and
 #                 the submodule pointer pins the law version per commit.
 #   LOCAL law   = the consuming repo's own root AGENTS.md — NOT baked
-#                 (optional file): bodies auto-read it from CWD, and
-#                 ci/bin/law_brief.sh prepends BOTH laws to every run's
-#                 prompt. No agent ever runs lawless.
+#                 (optional file): bodies auto-read it from CWD. The
+#                 brief prepend is OPTIONAL (Owner 2026-10-27 #hq: no
+#                 need to prepend with law_brief.sh) — the bake above
+#                 is the delivery mechanism. No agent ever runs lawless.
 # Secrets are NEVER baked: provider keys are injected per run as env vars
 # (OPENROUTER_API_KEY / ZAI_API_KEY / GROQ_API_KEY /
 #  QODER_PERSONAL_ACCESS_TOKEN / CODEBUDDY_*) from repo secrets.
@@ -102,8 +103,8 @@ RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent \
 #     CI-ready. Pure BYOK (DeepSeek key + anthropic/openai/moonshotai/zai
 #     + custom OpenAI/Anthropic-compatible gateways): creds live in
 #     $DSH_HOME/.credentials.yaml and are env-injected per run, NEVER
-#     baked. The global law rides ci/bin/law_brief.sh + project
-#     AGENTS.md; no global rules file is documented for dsh. ---
+#     baked. The global law MAY ride ci/bin/law_brief.sh (optional
+#     prepend) + project AGENTS.md; no global rules file is documented for dsh. ---
 RUN npm install -g @deepseek-ai/dsh \
  && timeout 60 dsh --version
 
@@ -125,8 +126,8 @@ RUN npm install -g @minimax-ai/code \
 #     `agent -p "..."` (--output-format text|json|stream-json, --trust).
 #     Auth: CURSOR_API_KEY env per run — NEVER baked. Law: Cursor reads
 #     AGENTS.md at the project root/subdirs + .cursor/rules; its "User
-#     Rules" are dashboard-only (no file path) so the GLOBAL law rides
-#     ci/bin/law_brief.sh. ASK-FIRST BODY: Cursor usage is
+#     Rules" are dashboard-only (no file path) so the GLOBAL law MAY
+#     ride ci/bin/law_brief.sh (optional prepend). ASK-FIRST BODY: Cursor usage is
 #     credit-limited — ask the Owner before a lane burns it. ---
 RUN export HOME=/usr/local/lib/cursor-home \
  && curl -fsSL https://cursor.com/install | bash \
@@ -143,7 +144,8 @@ RUN export HOME=/usr/local/lib/cursor-home \
 #     permission) — env-injected per run, NEVER baked. Custom
 #     instructions: repo .github/copilot-instructions.md (+ AGENTS.md at
 #     the project root); no VERIFIED user-level rules file for the CLI,
-#     so the GLOBAL law rides ci/bin/law_brief.sh. ASK-FIRST BODY
+#     so the GLOBAL law MAY ride ci/bin/law_brief.sh (optional
+#     prepend). ASK-FIRST BODY
 #     (Owner 2026-10-27 #hq): EVERY prompt burns one premium request
 #     from the monthly quota — ask the Owner before a lane uses it. ---
 RUN curl -fsSL https://gh.io/copilot-install | PREFIX=/usr/local bash \
@@ -202,9 +204,9 @@ COPY ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
 #   dsh /     NO verified global rules file (dsh is DEV PREVIEW; Cursor's
 #   Cursor /  "User Rules" are dashboard-only; Copilot CLI documents only
 #   Copilot / repo-level instructions; mcode reads the project AGENTS.md
-#   mcode     written by `mcode init .`) — their GLOBAL law rides
-#             ci/bin/law_brief.sh, their LOCAL law is the repo's root
-#             AGENTS.md. No invented paths.
+#   mcode     written by `mcode init .`) — their GLOBAL law MAY ride
+#             ci/bin/law_brief.sh (optional prepend), their LOCAL law is
+#             the repo's root AGENTS.md. No invented paths.
 COPY ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.config/goose/.goosehints
 COPY ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md

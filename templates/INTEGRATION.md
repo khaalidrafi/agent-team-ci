@@ -38,9 +38,17 @@ Dockerfile and keep the body installs + law bakes inherited, never
 forked. If you must diverge, port the change upstream to agent-team-ci first;
 a local fork without an upstream PR is a compliance violation.
 
-## 3. Dual-law brief (THE mechanism — no agent runs lawless)
+## 3. Dual-law delivery (bake + native read; brief is OPTIONAL)
 
-Every lane composes its prompt through `ci/bin/law_brief.sh`:
+The global law reaches bodies BAKED — the harness build puts
+`ci/AGENTS.md` into every body's verified global/user rules slot — and
+the local law is the repo's own root `AGENTS.md`, auto-read from the
+working directory. Owner 2026-10-27 #hq: **"no need to prepend with
+law_brief.sh"** — no lane is required to compose its prompt through
+the brief.
+
+`ci/bin/law_brief.sh` stays available for lanes WITHOUT a baked slot
+(dsh / Cursor / Copilot / mcode) or raw-curl runs:
 
 ```bash
 printf '%s\n' "$SEGMENT_BRIEF" > /tmp/segment-brief.txt
