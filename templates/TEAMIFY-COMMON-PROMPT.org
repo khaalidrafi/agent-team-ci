@@ -79,17 +79,25 @@
   - The landing gate also runs ci/bin/commit_msg_guard.sh:
     AGENTS.md owns the commit rules; the guard enforces them.
 
-- CI sends go THROUGH agent-org:
-  - the harness image preinstalls emacs-nox + agent-org-batch.el;
-  - one `emacs --batch' run spawns the provider's ACP agent, sends
-    ONE prompt, and fires the same send-hook an interactive send fires;
-  - the clock-in lands at the exact prompt-send moment;
+- CI sends go THROUGH agent-org (the SAME tool you use by hand):
+  - agent-org already spawns the provider's ACP agent, sends prompts,
+    and keeps the agent sessions — batch mode adds nothing new;
+  - batch mode is just agent-org run without a window: the harness
+    image preinstalls emacs-nox + agent-org-batch.el;
+  - one batch run sends ONE prompt and fires the same send-hook an
+    interactive send fires; the clock-in lands at the exact
+    prompt-send moment;
   - exit 42 = the batch lane is unavailable -> fall back to the
     direct CLI lane;
   - the batch path only ADDS a lane, it never removes the proven one;
   - web/cloud lanes stay manual (the ONE exception).
 
-- The GoModel gateway (Jev's judgment brain):
+- The GoModel gateway (khaalidrafi/llmfisher — the door to ALL our
+  models):
+  - one access point for every model the Owner runs. Jev's finalize
+    judgment is just ONE of its consumers;
+  - seat work still goes DIRECT to providers (2026-10-20 law): a
+    gateway model id stays unreachable until a resolve step proves it;
   - health-gated: checked at turn health and at finalize judgment.
   - The URL: first answer wins, in order:
     1. the vars.GOMODEL_GATEWAY_URL override,
@@ -189,8 +197,13 @@ only for what blocks or is his alone.
 - Space out your calls to the box. Bursts of requests slow it down for
   everyone.
 
-** GATEWAY AUTH (Owner gateway + Jev) — STATUS: RESOLVED LANE (override, then deployment, then local, then boot)
+** GATEWAY AUTH (the Owner's model gateway) — STATUS: RESOLVED LANE (override, then deployment, then local, then boot)
 
+- What the gateway IS: the GoModel gateway (khaalidrafi/llmfisher) is
+  the door to ALL the Owner's models — one access point for every
+  model he runs. Jev's finalize judgment is just ONE of its consumers.
+  Seat work still goes DIRECT to providers (2026-10-20 law): a
+  gateway model id stays unreachable until a resolve step proves it.
 - 2026-10-22 (second order, 16:25Z), Owner: the gateway URL is RESOLVED
   per job, never assumed. Try these in order: (1) the
   vars.GOMODEL_GATEWAY_URL override, when it is set; (2)
