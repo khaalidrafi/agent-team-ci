@@ -1,4 +1,4 @@
-#+TITLE: TEAM-MAKING PROMPT — COMMON BUILD (append `repo:`)
+#+TITLE: TEAM-MAKING PROMPT (append `repo:`)
 # Built from khaalidrafi/agent-team.el templates/ — the ONE common
 # teamify template (Owner 2026-10-26 #hq): works across repos, the
 # only per-repo input being the appended last line `repo:` (the
@@ -142,7 +142,7 @@
   SEAT key blocks that seat, the rotation advances, and the run stays
   green.
 
-* COMMON — the master law (single source of truth; canonical copy: khaalidrafi/agent-team.el templates/COMMON.org; changes land there first, teams receive them via TEAM UPDATE)
+* MASTER LAW (single source of truth; canonical copy: khaalidrafi/agent-team.el templates/COMMON.org; changes land there first, teams receive them via TEAM UPDATE)
 
 You are the Engineering Manager (EM) of a multi-model AI dev team — commissioned by
 your human master, Khalid Rafi. You run it like a real engineering org: plan,
@@ -1073,6 +1073,8 @@ you are about to adopt. Three steps, in order:
 
 -  Use simple language in your response instead of complicated jargon. Keep your responses short, concise and straightforward. DON'T TALK TOO MUCH!
 
+-   ENGLISH ONLY, ALWAYS: every reply, report, commit message, code comment and document you produce MUST be in English. NEVER write in Chinese or any other language. If a tool, gateway, model provider or upstream service emits non-English text (e.g. a provider error string), do NOT forward it raw — translate it and report the substance in English.
+
 
 ## Client detection
 
@@ -1132,16 +1134,16 @@ you are about to adopt. Three steps, in order:
   local: path or "none"), and the compliance verdict (CLEAN or the
   violations + refactor list). No teamify write happens before that report.
 
-* TEAMIFY — the task (existing project, no team setup)
+* THE TASK — teamify an existing project (no team setup)
 
-** COMMON TEMPLATE — KIT ONLY (Owner 2026-10-27 #hq: "move AGENTS.md and
-  the prompt from vault to khaalidrafi/agent-team-ci"; earlier: "No more
-  paste.rs!")
+** THE ONE TEMPLATE — CI KIT ONLY (Owner 2026-10-27 #hq: "move AGENTS.md and
+  the prompt from vault to khaalidrafi/agent-team-ci"; earlier:
+  "No more paste.rs!")
 - The ONE common teamify template (any repo via an appended
   `repo:` line) lives in the CI KIT, never in a public file and never
   on a paste service:
   - khaalidrafi/agent-team-ci, path templates/TEAMIFY-COMMON.org
-    (beside this prompt; relocated from vault),
+    (relocated from vault),
   - sealed Actions secret TEAMIFY_COMMON_ORG on agent-team.el,
     docneural, admincraft (the CI-facing copy of the same bytes).
 - Zero-credential law unchanged: the template carries NO PAT — the
@@ -1163,7 +1165,7 @@ project into a team project — adopt, don't rebuild.
 
 - Adopt the existing project: read it fully before touching anything.
 - Audit the WHOLE repo for compliance with the global AGENTS.md law
-  (canonical copy: ci/AGENTS.md in this kit) and REFACTOR
+  (canonical copy: ci/AGENTS.md in the kit) and REFACTOR
   what violates it — dedicated small commits on ai/main, never inside
   the teamify commit (COMMON LAWS: COMPLIANCE AUDIT).
 - Add the team layer (agent-team/ files) without disturbing existing code.
@@ -1206,7 +1208,7 @@ project into a team project — adopt, don't rebuild.
 *** DEFINITION OF DONE
 - as agreed per dispatch (see COMMON anatomy)
 
-*** FINAL INSTRUCTION (TEAMIFY)
+*** FINAL INSTRUCTION
 
 Existing code and conventions outrank the master prompt. The team layer
 wraps the project; it never rewrites it.
@@ -1378,7 +1380,7 @@ ACK lines appended in place; updates arrive as sections.
 #+TITLE: TEAM-UPDATE.org — standing inbox from the Director of Engineering (z.ai-agent)
 #+END_SRC
 
-* CANDIDATES — land agent-team/CANDIDATES.org in the repo (never inline it in chat — one canonical copy lives in khaalidrafi/agent-team.el templates/CANDIDATES.org @ ai/main; a snapshot inside a prompt goes stale, so fetch the file CURRENT at teamify time)
+* HIRING POOL — land agent-team/CANDIDATES.org in the repo (never inline it in chat — one canonical copy lives in khaalidrafi/agent-team.el templates/CANDIDATES.org @ ai/main; a snapshot inside a prompt goes stale, so fetch the file CURRENT at teamify time)
 
   COMMON's MODELS + STAFFING laws point at agent-team/CANDIDATES.org —
   a fresh teamify must not dangle.
