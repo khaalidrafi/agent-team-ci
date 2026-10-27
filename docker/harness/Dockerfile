@@ -111,4 +111,15 @@ ENV HOME=/home/agent \
     GOOSE_PROVIDER=openrouter \
     GOOSE_MODEL=nvidia/nemotron-3.5-lightning:free
 
+# agent-team.el chat command (Owner order 2026-10-27 #hq: TEAM-CHAT.org
+# is COMMAND-MAINTAINED — seats send chat via `team-chat', never by
+# hand). Baked at a pinned agent-team.el commit; AGENT_TEAM_EL_SHA is
+# bumped with the consuming repo's kit pointer bump.
+ARG AGENT_TEAM_EL_SHA=e9e5a772d468f6ebd06da354abffd7f36dd9f679
+RUN mkdir -p /opt/agent-team \
+ && curl -fsSL "https://raw.githubusercontent.com/khaalidrafi/agent-team.el/${AGENT_TEAM_EL_SHA}/agent-team.el" \
+      -o /opt/agent-team/agent-team.el
+COPY ci/docker/harness/team-chat /usr/local/bin/team-chat
+RUN chmod +x /usr/local/bin/team-chat
+
 STOPSIGNAL SIGTERM
