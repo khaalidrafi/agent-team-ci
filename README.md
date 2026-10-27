@@ -12,7 +12,7 @@ Owner orders landed 2026-10-27 (#hq):
    AGENTS.md"** — `bin/law_brief.sh` composes GLOBAL LAW + LOCAL LAW +
    segment brief for every lane (agent bodies and raw-curl alike); the
    canonical harness also bakes the global law into each body's
-   global/user rules slot (OpenCode / Goose / CodeBuddy).
+   global/user rules slot (OpenCode / Goose / Qoder / CodeBuddy / OMP).
 3. **"Store global AGENTS.md in your CI submodule"** — `AGENTS.md` here IS
    the canonical global law. A consuming repo pins a law version by pinning
    the submodule pointer; updates propagate as ordinary pointer bumps.

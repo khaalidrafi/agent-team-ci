@@ -78,6 +78,18 @@ RUN export HOME=/usr/local/lib/qoder-home \
 RUN npm install -g @tencent-ai/codebuddy-code \
  && timeout 60 codebuddy --version
 
+# --- OMP body (oh-my-pi, omp.sh — Owner roster TEAM.md MODELS/Local).
+#     Owner order 2026-10-27 #hq: "where is OMP?" — it sat roster-only,
+#     never baked. Binary install verified headless 2026-10-27: static
+#     omp-linux-x64 (no dynamic deps), sha256-verified by the installer,
+#     no bun needed (--binary mode). Version check is FATAL like the
+#     other bodies. ---
+RUN export HOME=/usr/local/lib/omp-home \
+ && curl -fsSL https://omp.sh/install | sh -s -- --binary \
+ && chmod -R a+rX /usr/local/lib/omp-home \
+ && ln -sf /usr/local/lib/omp-home/.local/bin/omp /usr/local/bin/omp \
+ && timeout 60 omp --version
+
 # --- Non-root run user (matches the Actions runner uid 1001) ---------------
 RUN useradd -m -u 1001 agent
 
@@ -99,12 +111,25 @@ COPY ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
 #             "takes effect in all projects" (CodeBuddy docs, .codebuddy
 #             directory structure); repo-root AGENTS.md auto-loads when no
 #             CODEBUDDY.md exists (documented backward compatibility).
-#   Qoder     no global/user rules path documented — repo-root AGENTS.md is
-#             auto-recognized ("copy your AGENTS.md to your project
-#             directory", docs.qoder.com/user-guide/rules); nothing baked.
+#             (Qoder + OMP rows re-verified against docs 2026-10-27 —
+#             docs.qoder.com/cli/memory.md, omp.sh/docs/context-files.)
+#   Qoder     ~/.qoder/AGENTS.md is the USER-level static memory — "cross-
+#             project general preferences and working habits for the current
+#             user" (docs.qoder.com/cli/memory.md; re-read 2026-10-27 after
+#             the Owner's correction — the earlier "not documented" claim
+#             was wrong); project AGENTS.md/AGENTS.local.md/.qoder/rules
+#             auto-discovered walking up to the .git boundary.
+#   OMP       ~/.omp/agent/AGENTS.md is the user-wide general context file
+#             and ~/.omp/agent/RULES.md the user-wide sticky always-apply
+#             rules (omp.sh/docs/context-files, read 2026-10-27); project
+#             AGENTS.md auto-discovered (agents-md provider walks up to the
+#             repo root).
 COPY ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.config/goose/.goosehints
 COPY ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
+COPY ci/AGENTS.md /home/agent/.qoder/AGENTS.md
+COPY ci/AGENTS.md /home/agent/.omp/agent/AGENTS.md
+COPY ci/AGENTS.md /home/agent/.omp/agent/RULES.md
 RUN chown -R agent:agent /home/agent
 
 ENV HOME=/home/agent \
