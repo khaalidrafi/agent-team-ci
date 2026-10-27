@@ -59,15 +59,16 @@
   from vault into this kit, Owner 2026-10-27 #hq). LOCAL LAW is the repo's
   own root AGENTS.md. The global law is BAKED into every body's global
   slot at harness build; composing prompts via ci/bin/law_brief.sh is
-  REQUIRED ONLY for the four bodies without a baked slot (dsh, Cursor,
-  Copilot, mcode) — baked bodies run prepend-free (Owner 2026-10-27
+  REQUIRED ONLY for the three bodies without a baked slot (dsh,
+  Cursor, mcode) — baked bodies run prepend-free (Owner 2026-10-27
   #hq: "no need to prepend with law_brief.sh"). The canonical harness
   Dockerfile (ci/docker/harness/Dockerfile)
   preinstalls TEN bodies — OpenCode, Goose, Qoder, CodeBuddy, OMP, pi,
   dsh, Cursor, Copilot and mcode — and bakes the global law into the
-  VERIFIED config slot of every body that has one (6 of 10: OpenCode,
-  Goose, Qoder, CodeBuddy, OMP, pi; the Dockerfile header lists every
-  slot and names the four slot-less bodies), and the landing gate runs
+  VERIFIED config slot of every body that has one (7 of 10: OpenCode,
+  Goose, Qoder, CodeBuddy, OMP, pi, Copilot; the Dockerfile header
+  lists every slot and names the three slot-less bodies), and the
+  landing gate runs
   ci/bin/commit_msg_guard.sh — AGENTS.md already owns the commit rules;
   the guard enforces them.
 - AGENT-ORG SEND LAW (Owner R-2-77 endgame 2026-10-26 #hq: team CI runs

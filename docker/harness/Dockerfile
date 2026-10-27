@@ -16,7 +16,7 @@
 #                 bodies run prepend-free (Owner 2026-10-27 #hq: no
 #                 need to prepend with law_brief.sh); the brief is
 #                 REQUIRED ONLY for bodies with no bake below (dsh /
-#                 Cursor / Copilot / mcode). No agent ever runs lawless.
+#                 Cursor / mcode). No agent ever runs lawless.
 # Secrets are NEVER baked: provider keys are injected per run as env vars
 # (OPENROUTER_API_KEY / ZAI_API_KEY / GROQ_API_KEY /
 #  QODER_PERSONAL_ACCESS_TOKEN / CODEBUDDY_*) from repo secrets.
@@ -143,11 +143,13 @@ RUN export HOME=/usr/local/lib/cursor-home \
 #     headless 2026-10-27 (PREFIX=/usr/local). Headless: `copilot -p
 #     "..."` (--allow-tool / --allow-all-tools). Auth: GH_TOKEN or
 #     GITHUB_TOKEN env (fine-grained PAT with the "Copilot Requests"
-#     permission) — env-injected per run, NEVER baked. Custom
-#     instructions: repo .github/copilot-instructions.md (+ AGENTS.md at
-#     the project root); no VERIFIED user-level rules file for the CLI,
-#     so the GLOBAL law rides ci/bin/law_brief.sh (REQUIRED for this
-#     body). ASK-FIRST BODY
+#     permission) — env-injected per run, NEVER baked. VERIFIED
+#     user-level global instructions: $HOME/.copilot/copilot-instructions.md
+#     (+ modular $HOME/.copilot/instructions/*.instructions.md;
+#     COPILOT_HOME redirects; docs: Copilot CLI > Customize Copilot >
+#     Custom instructions) — GLOBAL law BAKED there below, prepend-free.
+#     Also reads repo .github/copilot-instructions.md + AGENTS.md
+#     natively (LOCAL law). ASK-FIRST BODY
 #     (Owner 2026-10-27 #hq): EVERY prompt burns one premium request
 #     from the monthly quota — ask the Owner before a lane uses it. ---
 RUN curl -fsSL https://gh.io/copilot-install | PREFIX=/usr/local bash \
@@ -204,12 +206,14 @@ COPY ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
 #             2026-10-27); project .pi/ + AGENTS.md context files
 #             auto-discovered.
 #   dsh /     NO verified global rules file (dsh is DEV PREVIEW; Cursor's
-#   Cursor /  "User Rules" are dashboard-only; Copilot CLI documents only
-#   Copilot / repo-level instructions; mcode reads the project AGENTS.md
-#   mcode     written by `mcode init .`) — their GLOBAL law rides
-#             ci/bin/law_brief.sh (REQUIRED for these four — no baked
-#             global slot), their LOCAL law is the repo's root
+#   Cursor /  "User Rules" are dashboard-only; mcode reads the project
+#   mcode     AGENTS.md written by `mcode init .`) — their GLOBAL law
+#             rides ci/bin/law_brief.sh (REQUIRED for these three — no
+#             baked global slot), their LOCAL law is the repo's root
 #             AGENTS.md. No invented paths.
+#   Copilot   VERIFIED user-level global: $HOME/.copilot/
+#             copilot-instructions.md (Copilot CLI docs, Customize >
+#             Custom instructions) — baked below; prepend-free.
 COPY ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.config/goose/.goosehints
 COPY ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
@@ -217,6 +221,7 @@ COPY ci/AGENTS.md /home/agent/.qoder/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.omp/agent/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.omp/agent/RULES.md
 COPY ci/AGENTS.md /home/agent/.pi/agent/AGENTS.md
+COPY ci/AGENTS.md /home/agent/.copilot/copilot-instructions.md
 RUN chown -R agent:agent /home/agent
 
 ENV HOME=/home/agent \
