@@ -63,4 +63,4 @@ gating your merge, commit generators fixed to descriptive subjects.
 Repos upgrade by moving the submodule pointer (`git submodule update
 --remote ci` or a pinned sha) — a one-line, reviewable commit. Breaking
 changes to the contract bump the notes here first; teams migrate on their
-next turn and report evidence in their TEAM-CHAT.
+next turn and report evidence in their CHAT.org.

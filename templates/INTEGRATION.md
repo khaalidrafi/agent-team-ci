@@ -89,7 +89,7 @@ say so.
 
 ## 6. Verification duty (first migration turn)
 
-Report in your TEAM-CHAT, with evidence:
+Report in your CHAT.org, with evidence:
 - tool x global-rules x project-rules x mechanism matrix (which tool,
   which file, what carried it, request-id/token proof where the tool
   allows),
