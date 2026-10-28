@@ -155,7 +155,7 @@ RUN export HOME=/usr/local/lib/cursor-home \
 RUN curl -fsSL https://gh.io/copilot-install | PREFIX=/usr/local bash \
  && timeout 60 copilot --version
 
-# --- OMP body (oh-my-pi, omp.sh — Owner roster TEAM.md MODELS/Local).
+# --- OMP body (oh-my-pi, omp.sh — Owner roster CHARTER.md MODELS/Local).
 #     Owner order 2026-10-27 #hq: "where is OMP?" — it sat roster-only,
 #     never baked. Binary install verified headless 2026-10-27: static
 #     omp-linux-x64 (no dynamic deps), sha256-verified by the installer,
@@ -228,7 +228,7 @@ ENV HOME=/home/agent \
     GOOSE_PROVIDER=openrouter \
     GOOSE_MODEL=nvidia/nemotron-3.5-lightning:free
 
-# agent-team.el chat command (Owner order 2026-10-27 #hq: TEAM-CHAT.org
+# agent-team.el chat command (Owner order 2026-10-27 #hq: CHAT.org
 # is COMMAND-MAINTAINED — seats send chat via `team-chat', never by
 # hand). Baked at a pinned agent-team.el commit; AGENT_TEAM_EL_SHA is
 # bumped with the consuming repo's kit pointer bump.

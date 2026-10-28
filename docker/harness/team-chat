@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# team-chat — send one message to agent-team/TEAM-CHAT.org (Owner order
+# team-chat — send one message to agent-team/CHAT.org (Owner order
 # 2026-10-27 #hq: the chat is COMMAND-MAINTAINED by agent-team.el, never
 # hand-written). Env-driven:
 #   AGENT_CHAT_FROM, AGENT_CHAT_TO, AGENT_CHAT_KIND (required set),
