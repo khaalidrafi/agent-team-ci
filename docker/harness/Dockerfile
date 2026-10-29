@@ -167,6 +167,46 @@ RUN export HOME=/usr/local/lib/omp-home \
  && ln -sf /usr/local/lib/omp-home/.local/bin/omp /usr/local/bin/omp \
  && timeout 60 omp --version
 
+# --- Devin body (CognitionAI/devin-cli — OWNER ORDER 2026-10-29 #hq:
+#     "Add devin to docker with auth"). npm `devin' 3000.11.x; --version
+#     verified headless 2026-10-29 in-sandbox. ACP server: `devin acp'
+#     (JSON-RPC over stdio, docs.devin.ai/cli/reference/commands — the
+#     SAME subcommand Zed/JetBrains/Xcode spawn; initialize smoke-tested
+#     2026-10-29). Headless single-turn: `devin -p ... --respect-
+#     workspace-trust false' in CI. AUTH (never baked): the ACP server
+#     reads WINDSURF_API_KEY from the environment when set, else the
+#     credentials stored by `devin auth login' (--force-manual-token-flow
+#     pastes a token headlessly); CI injects the repo secret
+#     WINDSURF_API_KEY per run — sealing it activates the Devin seat.
+#     Global law slot VERIFIED: ~/.config/devin/AGENTS.md (docs.devin.ai/
+#     cli/extensibility/rules) — baked below, prepend-free. ---
+RUN npm install -g devin \
+ && timeout 60 devin --version
+
+# --- Cline body (npm `cline' 3.x — the umbrella QA seat's body,
+#     nemotron-3.5-lightning@cline; bake unblocks the QA seat's
+#     cline-on-CI body proof — installs in CI are banned 2026-10-20).
+#     ACP server: `cline --acp' (what agent-org fronts). Version check
+#     is FATAL. AUTH (never baked): its own credential store — vault
+#     holds CLINE_API_KEY / CLINE_AUTH_JSON for CI injection; --data-dir
+#     isolates state per seat. NO verified global rules path — the
+#     global law rides ci/bin/law_brief.sh (REQUIRED for this body,
+#     same treatment as dsh/Cursor/mcode), LOCAL law = repo-root
+#     AGENTS.md. No invented paths. ---
+RUN npm install -g cline \
+ && timeout 60 cline --version
+
+# --- pi-acp adapter (github.com/svkozak/pi-acp; npm --ignore-scripts,
+#     the same hygiene as the pi body). Closes the ONE body the image
+#     bakes but could not drive: agent-org's pi provider spawns
+#     `pi-acp' (reported to @lead 2026-10-28). FATAL check = a live
+#     initialize handshake (grep agentInfo) — the adapter has no
+#     documented --version. Smoke-tested 2026-10-29: answers
+#     "pi-acp" 0.0.34, loadSession t, session list + delete. pi's own
+#     config stays the credential store; nothing exported. ---
+RUN printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{}}}' \
+  | timeout 60 pi-acp | grep -q 'pi-acp'
+
 # --- Non-root run user (matches the Actions runner uid 1001) ---------------
 RUN useradd -m -u 1001 agent
 
@@ -214,6 +254,13 @@ COPY ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
 #   Copilot   VERIFIED user-level global: $HOME/.copilot/
 #             copilot-instructions.md (Copilot CLI docs, Customize >
 #             Custom instructions) — baked below; prepend-free.
+#   Devin     VERIFIED user-level global: ~/.config/devin/AGENTS.md
+#             (docs.devin.ai/cli/extensibility/rules — "rules that apply
+#             to every project"); project AGENTS.md auto-read at the
+#             root ("AGENTS.md rules work as-is", devin-cli README).
+#   Cline     NO verified global rules path — global law rides
+#             ci/bin/law_brief.sh (same as dsh/Cursor/mcode); LOCAL law
+#             = repo-root AGENTS.md. No invented paths.
 COPY ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.config/goose/.goosehints
 COPY ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
@@ -222,6 +269,7 @@ COPY ci/AGENTS.md /home/agent/.omp/agent/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.omp/agent/RULES.md
 COPY ci/AGENTS.md /home/agent/.pi/agent/AGENTS.md
 COPY ci/AGENTS.md /home/agent/.copilot/copilot-instructions.md
+COPY ci/AGENTS.md /home/agent/.config/devin/AGENTS.md
 RUN chown -R agent:agent /home/agent
 
 ENV HOME=/home/agent \
