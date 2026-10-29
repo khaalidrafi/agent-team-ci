@@ -173,11 +173,16 @@ RUN export HOME=/usr/local/lib/omp-home \
 #     (JSON-RPC over stdio, docs.devin.ai/cli/reference/commands — the
 #     SAME subcommand Zed/JetBrains/Xcode spawn; initialize smoke-tested
 #     2026-10-29). Headless single-turn: `devin -p ... --respect-
-#     workspace-trust false' in CI. AUTH (never baked): the ACP server
-#     reads WINDSURF_API_KEY from the environment when set, else the
-#     credentials stored by `devin auth login' (--force-manual-token-flow
-#     pastes a token headlessly); CI injects the repo secret
-#     WINDSURF_API_KEY per run — sealing it activates the Devin seat.
+#     workspace-trust false' in CI. AUTH (never baked; CORRECTED
+#     2026-10-29 — Owner intel + in-sandbox measurement, 3000.11.228):
+#     the vendor doc line "reads WINDSURF_API_KEY if set" is CLOUD-
+#     sessions only — the local `devin acp' server ignores it (with
+#     the key set: initialize answers nothing, exit 0; `devin models':
+#     "Not logged in") and honors ONLY the credentials.toml written by
+#     a real `devin auth login' (browser PKCE; --force-manual-token-
+#     flow pastes the browser-issued CODE, not the API key). Plan: the
+#     Owner completes one browser login (courier loop), the durable
+#     credentials seal as a GitHub secret, CI restores them per run.
 #     Global law slot VERIFIED: ~/.config/devin/AGENTS.md (docs.devin.ai/
 #     cli/extensibility/rules) — baked below, prepend-free. ---
 RUN npm install -g devin \
