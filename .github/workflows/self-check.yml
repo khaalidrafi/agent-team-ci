@@ -39,17 +39,24 @@ jobs:
           git add . && git commit -qm "wip"
           git commit --allow-empty -qm "ci-turn: seat done"
           git commit --allow-empty -qm "stall=2"
-          git commit --allow-empty -qm "turn(principal-engineer): fix parser"
           git commit --allow-empty -qm "update"
+          # Owner law 2026-10-29: turn() work authored by the CI machine
+          GIT_AUTHOR_NAME="agent-team-ci" \
+            GIT_AUTHOR_EMAIL="agent-team-ci@users.noreply.github.com" \
+            git commit --allow-empty -qm "turn(principal-engineer): fix parser"
           if bash "$OLDPWD/bin/commit_msg_guard.sh" HEAD~4..HEAD; then
             echo "FAIL: guard passed a bad range"; exit 1
           fi
           if bash "$OLDPWD/bin/commit_msg_guard.sh" BOGUS..REF; then
             echo "FAIL: guard passed an unresolvable range"; exit 1
           fi
+          # agent-authored turn() work is the compliant shape — must PASS
+          GIT_AUTHOR_NAME="zai/glm-4.7-flash@goose" \
+            GIT_AUTHOR_EMAIL="zai-glm-4.7-flash.goose@agents.invalid" \
+            git commit --allow-empty -qm "turn(principal-engineer): fix parser — host-committed for the seat"
           git commit --allow-empty -qm "parser: reject empty org headline tags"
           git commit --allow-empty -qm "control: rotate #+TURN to release-engineer after QA segment"
-          bash "$OLDPWD/bin/commit_msg_guard.sh" HEAD~2..HEAD
+          bash "$OLDPWD/bin/commit_msg_guard.sh" HEAD~3..HEAD
           echo "guard fixtures PASS"
 
       - name: law_brief composition

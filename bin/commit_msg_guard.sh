@@ -7,29 +7,38 @@
 #
 # Owner order 2026-10-27 (#hq): commit messages are written by agents
 # about what changed in the code — never "ci turn", "stall", etc.
+# Owner order 2026-10-29 (#hq): changes made by agents on CI MUST be
+# committed by that agent's author, not the model that ran CI — a
+# `turn(<seat>):` commit authored by the CI bot identity is a violation.
 #
 # Usage: commit_msg_guard.sh <git-range>
 #   e.g. commit_msg_guard.sh origin/ai/main..HEAD
 #
-# Exit 0 = every subject in the range passes.
+# Exit 0 = every commit in the range passes.
 # Exit 1 = violations printed (sha + subject + reason).
+# Exit 2 = the range itself could not be read (never pass silently).
 #
 # Rules:
 #   1. Subject carries >= 3 words.
 #   2. Subject does not START with turn-metadata labels:
-#      ci-turn / ci-chain / ci turn / ci chain / turn( / wip / progress /
+#      ci-turn / ci-chain / ci turn / ci chain / wip / progress /
 #      misc / various / done / temp / tmp / changes / commit / stall=N.
+#      (`turn(<seat>):` is the harness's RESERVED host-commit prefix —
+#      governed by rule 3, not banned outright.)
+#   3. A `turn(<seat>):` subject (host-committed agent work) must carry
+#      the AGENT as git author — never agent-team-ci@users.noreply.
 set -u
 
 RANGE="${1:?usage: commit_msg_guard.sh <git-range>}"
 
-BANNED_RE='^(ci[-_ ]?(turn|chain)|turn\(|wip\b|progress\b|misc\b|various\b|done\b|temp\b|tmp\b|changes\b|commit\b|stall=[0-9])'
+BANNED_RE='^(ci[-_ ]?(turn|chain)|wip\b|progress\b|misc\b|various\b|done\b|temp\b|tmp\b|changes\b|commit\b|stall=[0-9])'
+CI_MACHINE_RE='agent-team-ci@users\.noreply\.github\.com'
 
 fail=0
 count=0
 # An unresolvable range must FAIL LOUDLY, never pass silently: a gate
 # that cannot read the history must not wave it through.
-LOG=$(git log --format='%h %s' "$RANGE" 2>/tmp/cmg-err.txt)
+LOG=$(git log --format='%h%x09%an <%ae>%x09%s' "$RANGE" 2>/tmp/cmg-err.txt)
 if [ $? -ne 0 ]; then
   echo "commit-msg guard: BAD RANGE '${RANGE}' — $(head -1 /tmp/cmg-err.txt)"
   rm -f /tmp/cmg-err.txt
@@ -38,8 +47,7 @@ fi
 rm -f /tmp/cmg-err.txt
 while IFS= read -r line; do
   [ -n "$line" ] || continue
-  sha=${line%% *}
-  subj=${line#* }
+  IFS=$'\t' read -r sha author subj <<< "$line"
   count=$((count + 1))
   reasons=""
   words=$(printf '%s' "$subj" | wc -w)
@@ -49,10 +57,19 @@ while IFS= read -r line; do
   if printf '%s' "$subj" | grep -qiE "$BANNED_RE"; then
     reasons="${reasons}mechanical/turn-metadata subject; "
   fi
+  # Owner law 2026-10-29: agent work carries the agent's author.
+  case "$subj" in
+    turn\(*)
+      if printf '%s' "$author" | grep -qE "$CI_MACHINE_RE"; then
+        reasons="${reasons}agent work authored by the CI machine (law: turn work carries the agent's author); "
+      fi
+      ;;
+  esac
   if [ -n "$reasons" ]; then
     echo "VIOLATION ${sha}: ${subj}"
+    echo "  -> author: ${author}"
     echo "  -> ${reasons}"
-    echo "     law: subjects name WHAT changed (file/feature/behavior + effect)"
+    echo "     law: subjects name WHAT changed (file/feature/behavior + effect); turn work carries the agent's author"
     fail=1
   fi
 done <<< "$LOG"
@@ -60,6 +77,6 @@ done <<< "$LOG"
 if [ "$fail" = 0 ]; then
   echo "commit-msg guard: ${count} commit(s) in ${RANGE} all describe their changes"
 else
-  echo "commit-msg guard: FAIL — ${RANGE} carries mechanical subjects (see above)"
+  echo "commit-msg guard: FAIL — ${RANGE} carries violations (see above)"
 fi
 exit $fail
