@@ -82,6 +82,11 @@ This section explains the automation that runs the team, in plain words.
     dsh, Cursor, Copilot, mcode.
   - The tests job also checks every commit message against the rules
     (ci/bin/commit_msg_guard.sh).
+  - OWNER LAW (2026-10-29 #hq): commits are authored by the agent whose
+    work they carry — never by the CI model. If you have git write,
+    commit under your own agent id. If the harness host-commits your
+    workspace diff, it sets YOUR agent id as the git author; a
+    `turn(<seat>):` commit authored by the CI bot now FAILS the guard.
 
 - CI work goes through agent-org (the same program you use by hand):
   - agent-org is the tool that starts a coding agent, sends it your
