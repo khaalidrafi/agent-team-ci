@@ -280,7 +280,7 @@ ENV HOME=/home/agent \
 # is COMMAND-MAINTAINED — seats send chat via `team-chat', never by
 # hand). Baked at a pinned agent-team.el commit; AGENT_TEAM_EL_SHA is
 # bumped with the consuming repo's kit pointer bump.
-ARG AGENT_TEAM_EL_SHA=e9e5a772d468f6ebd06da354abffd7f36dd9f679
+ARG AGENT_TEAM_EL_SHA=ed63926
 RUN mkdir -p /opt/agent-team \
  && curl -fsSL "https://raw.githubusercontent.com/khaalidrafi/agent-team.el/${AGENT_TEAM_EL_SHA}/agent-team.el" \
       -o /opt/agent-team/agent-team.el
