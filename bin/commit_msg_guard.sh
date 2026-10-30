@@ -26,7 +26,10 @@
 #      (`turn(<seat>):` is the harness's RESERVED host-commit prefix —
 #      governed by rule 3, not banned outright.)
 #   3. A `turn(<seat>):` subject (host-committed agent work) must carry
-#      the AGENT as git author — never agent-team-ci@users.noreply.
+#      the AGENT as git author in the AGENTS.md model format
+#      MODEL <MODEL@PROVIDER> — never agent-team-ci@users.noreply,
+#      never a raw lane string ("model@provider") as the NAME,
+#      never "unknown" (Owner correction 2026-10-30 #hq).
 set -u
 
 RANGE="${1:?usage: commit_msg_guard.sh <git-range>}"
@@ -58,10 +61,23 @@ while IFS= read -r line; do
     reasons="${reasons}mechanical/turn-metadata subject; "
   fi
   # Owner law 2026-10-29: agent work carries the agent's author.
+  # Owner correction 2026-10-30: that author is a MODEL identity in the
+  # AGENTS.md format MODEL <MODEL@PROVIDER> (e.g.
+  # "Qwen3.8-Flash <qwen3.8-flash@qoder.com>") — never the CI machine,
+  # never a raw lane string as the name, never "unknown".
   case "$subj" in
     turn\(*)
       if printf '%s' "$author" | grep -qE "$CI_MACHINE_RE"; then
         reasons="${reasons}agent work authored by the CI machine (law: turn work carries the agent's author); "
+      fi
+      if printf '%s' "$author" | grep -qE '^[^<]*@[^<]*<'; then
+        reasons="${reasons}author name is a lane string, not a model name (law: MODEL <MODEL@PROVIDER>); "
+      fi
+      if printf '%s' "$author" | grep -qiE '^[^<]*unknown[^<]*<'; then
+        reasons="${reasons}author name is unknown (law: author is a model identity MODEL <MODEL@PROVIDER>); "
+      fi
+      if ! printf '%s' "$author" | grep -qE '<[^@]+@[^>]+>$'; then
+        reasons="${reasons}author email malformed (law: MODEL <MODEL@PROVIDER>); "
       fi
       ;;
   esac
@@ -69,7 +85,7 @@ while IFS= read -r line; do
     echo "VIOLATION ${sha}: ${subj}"
     echo "  -> author: ${author}"
     echo "  -> ${reasons}"
-    echo "     law: subjects name WHAT changed (file/feature/behavior + effect); turn work carries the agent's author"
+    echo "     law: subjects name WHAT changed (file/feature/behavior + effect); turn work carries the agent's model author (MODEL <MODEL@PROVIDER>)"
     fail=1
   fi
 done <<< "$LOG"
