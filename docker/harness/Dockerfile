@@ -201,6 +201,26 @@ RUN npm install -g devin \
 RUN npm install -g cline \
  && timeout 60 cline --version
 
+# --- gemini-cli body (WO-16 Lead step, Owner order 2026-10-29 #hq "Add
+#     all missing ACP clients to agent-org"): the parity seat wired the
+#     provider entry on vendor docs (geminicli.com --acp flag) and
+#     REPORTED the evidence gap — the binary was never in the image.
+#     Bake closes it: npm @google/gemini-cli, FATAL --version. AUTH
+#     (never baked): its own credential store / GEMINI_API_KEY at run
+#     time. ACP surface re-prove (initialize/loadSession) = seat work
+#     per the WO-16 note. ---
+RUN npm install -g @google/gemini-cli \
+ && timeout 60 gemini --version
+
+# --- kilo body (WO-20 half (a), Owner order 2026-10-29 #hq "add Kilo
+#     Code"): bake a kilo body beside the devin/cline bodies. npm
+#     @kilocode/cli, command `kilo`, headless `kilo run --auto` (verify
+#     flags against the CLI's own help at run time — REPORT gaps, never
+#     invent). FATAL --version. NO creds baked — auth rides the seat's
+#     own store / vault holds. ---
+RUN npm install -g @kilocode/cli \
+ && timeout 60 kilo --version
+
 # --- pi-acp adapter (github.com/svkozak/pi-acp; npm --ignore-scripts,
 #     the same hygiene as the pi body). Closes the ONE body the image
 #     bakes but could not drive: agent-org's pi provider spawns
