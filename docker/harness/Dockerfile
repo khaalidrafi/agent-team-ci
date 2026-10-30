@@ -1,5 +1,12 @@
 # agent-harness-base (canonical, khaalidrafi/agent-team-ci) — CI turn container
 # with agent bodies PREINSTALLED.
+# MODULAR (Owner order 2026-10-30 #hq: "on each CI run, only agents needed
+# by that run can be built/used"): one shared `base` stage + one
+# `body-<name>` stage per agent + a `harness` stage that unions ALL bodies
+# (default target = legacy full image). Consumers build ONLY the bodies a
+# run needs via ci/bin/harness_run_build.sh (--target body-<name> per
+# body): BuildKit skips every other body stage entirely, and a change to
+# one body's layers no longer invalidates any other body's cache.
 # Owner order 2026-10-20 (#hq): "Use Docker containers with agents
 # preinstalled. Don't install in CI. That's a waste of time. You'll have
 # to make agent configs, too, and reuse them."
@@ -8,9 +15,10 @@
 # CONSUMING REPO'S ROOT as build context:
 #   docker buildx build -f ci/docker/harness/Dockerfile -t <team-harness> .
 # DUAL-LAW ARCHITECTURE (Owner order 2026-10-27 #hq):
-#   GLOBAL law  = ci/AGENTS.md (this submodule) — baked into every body's
-#                 global/user rules slot below; present in every repo, and
-#                 the submodule pointer pins the law version per commit.
+#   GLOBAL law  = ci/AGENTS.md (this submodule) — baked into each body's
+#                 global/user rules slot IN THAT BODY'S STAGE below;
+#                 present in every repo, and the submodule pointer pins
+#                 the law version per commit.
 #   LOCAL law   = the consuming repo's own root AGENTS.md — NOT baked
 #                 (optional file): bodies auto-read it from CWD. Baked
 #                 bodies run prepend-free (Owner 2026-10-27 #hq: no
@@ -23,7 +31,12 @@
 # Project harnesses (extra deps: node modules, python venvs) extend this
 # image: FROM <this image> + your project layers — see templates/.
 
-FROM debian:stable-slim
+# ===========================================================================
+# Shared base: OS plumbing + Node 22 + run user + team plumbing.
+# Kept deliberately SMALL — every body stage builds on it and its layers
+# are shared by all bodies in the cache.
+# ===========================================================================
+FROM debian:stable-slim AS base
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -36,44 +49,86 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
  && apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
 
+# --- Non-root run user (matches the Actions runner uid 1001) ---------------
+RUN useradd -m -u 1001 agent
+
+ENV HOME=/home/agent \
+    GOOSE_PROVIDER=openrouter \
+    GOOSE_MODEL=nvidia/nemotron-3.5-lightning:free
+
+# agent-team.el chat command (Owner order 2026-10-27 #hq: CHAT.org
+# is COMMAND-MAINTAINED — seats send chat via `team-chat', never by
+# hand). Baked at a pinned agent-team.el commit; AGENT_TEAM_EL_SHA is
+# bumped with the consuming repo's kit pointer bump.
+ARG AGENT_TEAM_EL_SHA=ed63926
+RUN mkdir -p /opt/agent-team \
+ && curl -fsSL "https://raw.githubusercontent.com/khaalidrafi/agent-team.el/${AGENT_TEAM_EL_SHA}/agent-team.el" \
+      -o /opt/agent-team/agent-team.el
+COPY ci/docker/harness/team-chat /usr/local/bin/team-chat
+RUN chmod +x /usr/local/bin/team-chat
+
+STOPSIGNAL SIGTERM
+
+# ===========================================================================
+# Body stages — one per agent, INDEPENDENT of each other (all FROM base).
+# Every body keeps its FATAL version check: a body that cannot run fails
+# its own build loudly, never hides behind || true. Body payloads live
+# under /usr/local (installers, npm -g) and /home/agent (config bakes);
+# the harness_run_build.sh overlay copies exactly those two prefixes.
+# Baked global-law slots per body (docs verified 2026-10-21/27/29):
+#   OpenCode  ~/.config/opencode/AGENTS.md (opencode.ai/docs/rules)
+#   Goose     ~/.config/goose/.goosehints (global hints file)
+#   CodeBuddy ~/.codebuddy/CODEBUDDY.md (USER-level memory)
+#   Qoder     ~/.qoder/AGENTS.md (USER-level static memory)
+#   OMP       ~/.omp/agent/AGENTS.md + RULES.md (user-wide context/rules)
+#   pi        ~/.pi/agent/AGENTS.md (user instructions across workdirs)
+#   Copilot   ~/.copilot/copilot-instructions.md (user-level global)
+#   Devin     ~/.config/devin/AGENTS.md (rules for every project)
+#   dsh / Cursor / mcode / Cline / gemini-cli / kilo: NO verified global
+#             rules slot — the global law rides ci/bin/law_brief.sh
+#             (REQUIRED for these bodies), LOCAL law = repo-root AGENTS.md.
+# ===========================================================================
+
 # --- OpenCode body (preinstalled once, reused every turn) -------------------
 # Installed under /usr/local/lib so the non-root run user can traverse it.
+FROM base AS body-opencode
 RUN export HOME=/usr/local/lib/opencode-home \
  && curl -fsSL https://opencode.ai/install | bash \
  && chmod -R a+rX /usr/local/lib/opencode-home \
  && ln -sf /usr/local/lib/opencode-home/.opencode/bin/opencode /usr/local/bin/opencode
+COPY --chown=1001:1001 ci/docker/harness/opencode.json /home/agent/.config/opencode/opencode.json
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
 
 # --- Goose body (direct tarball: the download_cli.sh installer opens
 #     /dev/tty and dies on headless runners — demo/01 turn 2 evidence) ------
+FROM base AS body-goose
 RUN mkdir -p /tmp/goose-dl \
  && curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 -m 300 -o /tmp/goose-dl/goose.tar.bz2 \
       https://github.com/block/goose/releases/download/stable/goose-x86_64-unknown-linux-gnu.tar.bz2 \
  && test -s /tmp/goose-dl/goose.tar.bz2 && tar -xjf /tmp/goose-dl/goose.tar.bz2 -C /tmp/goose-dl \
  && install -m 0755 /tmp/goose-dl/goose /usr/local/bin/goose \
  && rm -rf /tmp/goose-dl
+COPY --chown=1001:1001 ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.config/goose/.goosehints
 
 # --- Qoder body (keys landed 2026-10-21: Owner PAT -> repo secret
 #     QODER_PERSONAL_ACCESS_TOKEN; CLI auto-detects CI and uses the PAT,
 #     no browser — Task 6 auth research).
-#     RUNTIME ROOT CAUSE (proof run 39467719908, first platform segment):
-#     the installer's `qoder` launcher resolves the real CLI under ITS
-#     HOME — at build (HOME=/usr/local/lib/qoder-home) the version check
-#     passed, at segment runtime HOME=/home/agent it printed "Qoder CLI
-#     is not installed". Fix: keep the install tree under a+rwx and run
-#     the launcher with HOME pinned to the install dir (also done in
-#     ci.yml's platform branch). Version check is FATAL now — a body that
-#     cannot run must fail the build loudly, not hide behind || true.
+#     RUNTIME ROOT CAUSE (proof run 39467719908): the installer's `qoder'
+#     launcher resolves the real CLI under ITS HOME — run the launcher
+#     with HOME pinned to the install dir (build here, runtime in the
+#     consumers' ci.yml). Version check is FATAL.
 #     PATH FIX (CI evidence 2026-10-21, runs 39470194454/39470807232): the
 #     installer does NOT put the dispatcher on PATH at all — it lives at
 #     $HOME/.qoder/entry/qoder and resolves the real CLI via
-#     $HOME/.local/bin/qodercli. Symlink the entry into /usr/local/bin at
-#     build; HOME stays pinned (build here, runtime in ci.yml) so the
-#     dispatcher's $HOME-relative discovery works for uid 1001. ---
+#     $HOME/.local/bin/qodercli. Symlink the entry into /usr/local/bin. ---
+FROM base AS body-qoder
 RUN export HOME=/usr/local/lib/qoder-home \
  && curl -fsSL https://qoder.com/install | bash \
  && chmod -R a+rwX /usr/local/lib/qoder-home \
  && ln -sf /usr/local/lib/qoder-home/.qoder/entry/qoder /usr/local/bin/qoder \
  && timeout 60 qoder --version
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.qoder/AGENTS.md
 
 # --- CodeBuddy body (Owner law 2026-10-21 17:47Z: CodeBuddy is kept for
 #     its BUILT-IN models only. For API-served brains there is no novelty
@@ -83,8 +138,10 @@ RUN export HOME=/usr/local/lib/qoder-home \
 #     keys are pro-only; CODEBUDDY_AUTH_TOKEN / CODEBUDDY_API_KEY envs
 #     ready to wire the moment one lands). Headless needs -y in -p mode
 #     for tool use.) ----------------------------------------------------
+FROM base AS body-codebuddy
 RUN npm install -g @tencent-ai/codebuddy-code \
  && timeout 60 codebuddy --version
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
 
 # --- pi body (earendil-works/pi 1.4.x — "a minimal, extensible agent
 #     harness that you can make your own"; Owner order 2026-10-27 #hq:
@@ -95,8 +152,10 @@ RUN npm install -g @tencent-ai/codebuddy-code \
 #     across working directories". Headless: `pi --print`, `--mode json`.
 #     Brains: BYOK via env vars / auth.json — keys are env-injected per
 #     run, NEVER baked. npm --ignore-scripts per upstream README. ---
+FROM base AS body-pi
 RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent \
  && timeout 60 pi --version
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.pi/agent/AGENTS.md
 
 # --- dsh body (DeepSeek Harness, @deepseek-ai/dsh 0.2.x — DEV PREVIEW,
 #     breaking changes expected; Owner order 2026-10-27 #hq: add it).
@@ -105,8 +164,8 @@ RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent \
 #     + custom OpenAI/Anthropic-compatible gateways): creds live in
 #     $DSH_HOME/.credentials.yaml and are env-injected per run, NEVER
 #     baked. The global law rides ci/bin/law_brief.sh (REQUIRED for
-#     this body — no baked global slot) + project AGENTS.md; no global
-#     rules file is documented for dsh. ---
+#     this body — no baked global slot) + project AGENTS.md. ---
+FROM base AS body-dsh
 RUN npm install -g @deepseek-ai/dsh \
  && timeout 60 dsh --version
 
@@ -118,6 +177,7 @@ RUN npm install -g @deepseek-ai/dsh \
 #     no PKCE needed — CANDIDATES.org profile). ASK-FIRST BODY (Owner
 #     order 2026-10-27 #hq): the M-Plan-Free quota is LIMITED — the Lead
 #     asks the Owner BEFORE a lane burns mcode credit. ---
+FROM base AS body-mcode
 RUN npm install -g @minimax-ai/code \
  && timeout 60 mcode --version
 
@@ -129,8 +189,10 @@ RUN npm install -g @minimax-ai/code \
 #     Auth: CURSOR_API_KEY env per run — NEVER baked. Law: Cursor reads
 #     AGENTS.md at the project root/subdirs + .cursor/rules; its "User
 #     Rules" are dashboard-only (no file path) so the GLOBAL law rides
-#     ci/bin/law_brief.sh (REQUIRED for this body). ASK-FIRST BODY: Cursor usage is
-#     credit-limited — ask the Owner before a lane burns it. ---
+#     ci/bin/law_brief.sh (REQUIRED for this body). ASK-FIRST BODY:
+#     Cursor usage is credit-limited — ask the Owner before a lane
+#     burns it. ---
+FROM base AS body-cursor
 RUN export HOME=/usr/local/lib/cursor-home \
  && curl -fsSL https://cursor.com/install | bash \
  && chmod -R a+rX /usr/local/lib/cursor-home \
@@ -149,11 +211,13 @@ RUN export HOME=/usr/local/lib/cursor-home \
 #     COPILOT_HOME redirects; docs: Copilot CLI > Customize Copilot >
 #     Custom instructions) — GLOBAL law BAKED there below, prepend-free.
 #     Also reads repo .github/copilot-instructions.md + AGENTS.md
-#     natively (LOCAL law). ASK-FIRST BODY
-#     (Owner 2026-10-27 #hq): EVERY prompt burns one premium request
-#     from the monthly quota — ask the Owner before a lane uses it. ---
+#     natively (LOCAL law). ASK-FIRST BODY (Owner 2026-10-27 #hq):
+#     EVERY prompt burns one premium request from the monthly quota —
+#     ask the Owner before a lane uses it. ---
+FROM base AS body-copilot
 RUN curl -fsSL https://gh.io/copilot-install | PREFIX=/usr/local bash \
  && timeout 60 copilot --version
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.copilot/copilot-instructions.md
 
 # --- OMP body (oh-my-pi, omp.sh — Owner roster CHARTER.md MODELS/Local).
 #     Owner order 2026-10-27 #hq: "where is OMP?" — it sat roster-only,
@@ -161,11 +225,14 @@ RUN curl -fsSL https://gh.io/copilot-install | PREFIX=/usr/local bash \
 #     omp-linux-x64 (no dynamic deps), sha256-verified by the installer,
 #     no bun needed (--binary mode). Version check is FATAL like the
 #     other bodies. ---
+FROM base AS body-omp
 RUN export HOME=/usr/local/lib/omp-home \
  && curl -fsSL https://omp.sh/install | sh -s -- --binary \
  && chmod -R a+rX /usr/local/lib/omp-home \
  && ln -sf /usr/local/lib/omp-home/.local/bin/omp /usr/local/bin/omp \
  && timeout 60 omp --version
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.omp/agent/AGENTS.md
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.omp/agent/RULES.md
 
 # --- Devin body (CognitionAI/devin-cli — OWNER ORDER 2026-10-29 #hq:
 #     "Add devin to docker with auth"). npm `devin' 3000.11.x; --version
@@ -183,10 +250,12 @@ RUN export HOME=/usr/local/lib/omp-home \
 #     flow pastes the browser-issued CODE, not the API key). Plan: the
 #     Owner completes one browser login (courier loop), the durable
 #     credentials seal as a GitHub secret, CI restores them per run.
-#     Global law slot VERIFIED: ~/.config/devin/AGENTS.md (docs.devin.ai/
-#     cli/extensibility/rules) — baked below, prepend-free. ---
+#     Global law slot VERIFIED: ~/.config/devin/AGENTS.md — baked below,
+#     prepend-free. ---
+FROM base AS body-devin
 RUN npm install -g devin \
  && timeout 60 devin --version
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.config/devin/AGENTS.md
 
 # --- Cline body (npm `cline' 3.x — the umbrella QA seat's body,
 #     nemotron-3.5-lightning@cline; bake unblocks the QA seat's
@@ -198,6 +267,7 @@ RUN npm install -g devin \
 #     global law rides ci/bin/law_brief.sh (REQUIRED for this body,
 #     same treatment as dsh/Cursor/mcode), LOCAL law = repo-root
 #     AGENTS.md. No invented paths. ---
+FROM base AS body-cline
 RUN npm install -g cline \
  && timeout 60 cline --version
 
@@ -209,6 +279,7 @@ RUN npm install -g cline \
 #     (never baked): its own credential store / GEMINI_API_KEY at run
 #     time. ACP surface re-prove (initialize/loadSession) = seat work
 #     per the WO-16 note. ---
+FROM base AS body-gemini
 RUN npm install -g @google/gemini-cli \
  && timeout 60 gemini --version
 
@@ -218,6 +289,7 @@ RUN npm install -g @google/gemini-cli \
 #     flags against the CLI's own help at run time — REPORT gaps, never
 #     invent). FATAL --version. NO creds baked — auth rides the seat's
 #     own store / vault holds. ---
+FROM base AS body-kilo
 RUN npm install -g @kilocode/cli \
  && timeout 60 kilo --version
 
@@ -232,88 +304,49 @@ RUN npm install -g @kilocode/cli \
 #     FIX 2026-10-30: the install RUN was missing (smoke test only) —
 #     every harness build died here since b59ebba, stalling the
 #     agent-org chain (STALL 46, "segment no-branch"). ---
+FROM base AS body-pi-acp
 RUN npm install -g --ignore-scripts pi-acp
 RUN printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{}}}' \
   | timeout 60 pi-acp | grep -q 'pi-acp'
 
-# --- Non-root run user (matches the Actions runner uid 1001) ---------------
-RUN useradd -m -u 1001 agent
-
-# --- Baked agent configs (Owner: "make agent configs, too, and reuse them").
-#     Keys are env-interpolated at run time; nothing secret is baked. -------
-COPY ci/docker/harness/opencode.json     /home/agent/.config/opencode/opencode.json
-COPY ci/docker/harness/goose-config.yaml /home/agent/.config/goose/config.yaml
-# Global AGENTS.md = agent law, CONFIGURED into memory (Owner 2026-10-21
-# 08:22Z "configure the agent to load global AGENTS.md"; 09:16Z "read docs
-# for each agent for how they configure global AGENTS.md"). Verified against
-# each agent's official docs on 2026-10-21:
-#   OpenCode  ~/.config/opencode/AGENTS.md — "applied across all opencode
-#             sessions" (opencode.ai/docs/rules); repo-root AGENTS.md also
-#             rides instructions[] in opencode.json.
-#   Goose     ~/.config/goose/.goosehints is the GLOBAL hints file (goose
-#             config dir, ~/.config/goose/); repo-root AGENTS.md/.goosehints
-#             are additionally read from CWD per session.
-#   CodeBuddy ~/.codebuddy/CODEBUDDY.md is the USER-LEVEL memory file,
-#             "takes effect in all projects" (CodeBuddy docs, .codebuddy
-#             directory structure); repo-root AGENTS.md auto-loads when no
-#             CODEBUDDY.md exists (documented backward compatibility).
-#             (Qoder + OMP rows re-verified against docs 2026-10-27 —
-#             docs.qoder.com/cli/memory.md, omp.sh/docs/context-files.)
-#   Qoder     ~/.qoder/AGENTS.md is the USER-level static memory — "cross-
-#             project general preferences and working habits for the current
-#             user" (docs.qoder.com/cli/memory.md; re-read 2026-10-27 after
-#             the Owner's correction — the earlier "not documented" claim
-#             was wrong); project AGENTS.md/AGENTS.local.md/.qoder/rules
-#             auto-discovered walking up to the .git boundary.
-#   OMP       ~/.omp/agent/AGENTS.md is the user-wide general context file
-#             and ~/.omp/agent/RULES.md the user-wide sticky always-apply
-#             rules (omp.sh/docs/context-files, read 2026-10-27); project
-#             AGENTS.md auto-discovered (agents-md provider walks up to the
-#             repo root).
-#   pi        ~/.pi/agent/AGENTS.md — "user instructions applied across
-#             working directories" (docs/configuration.md, read
-#             2026-10-27); project .pi/ + AGENTS.md context files
-#             auto-discovered.
-#   dsh /     NO verified global rules file (dsh is DEV PREVIEW; Cursor's
-#   Cursor /  "User Rules" are dashboard-only; mcode reads the project
-#   mcode     AGENTS.md written by `mcode init .`) — their GLOBAL law
-#             rides ci/bin/law_brief.sh (REQUIRED for these three — no
-#             baked global slot), their LOCAL law is the repo's root
-#             AGENTS.md. No invented paths.
-#   Copilot   VERIFIED user-level global: $HOME/.copilot/
-#             copilot-instructions.md (Copilot CLI docs, Customize >
-#             Custom instructions) — baked below; prepend-free.
-#   Devin     VERIFIED user-level global: ~/.config/devin/AGENTS.md
-#             (docs.devin.ai/cli/extensibility/rules — "rules that apply
-#             to every project"); project AGENTS.md auto-read at the
-#             root ("AGENTS.md rules work as-is", devin-cli README).
-#   Cline     NO verified global rules path — global law rides
-#             ci/bin/law_brief.sh (same as dsh/Cursor/mcode); LOCAL law
-#             = repo-root AGENTS.md. No invented paths.
-COPY ci/AGENTS.md /home/agent/.config/opencode/AGENTS.md
-COPY ci/AGENTS.md /home/agent/.config/goose/.goosehints
-COPY ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
-COPY ci/AGENTS.md /home/agent/.qoder/AGENTS.md
-COPY ci/AGENTS.md /home/agent/.omp/agent/AGENTS.md
-COPY ci/AGENTS.md /home/agent/.omp/agent/RULES.md
-COPY ci/AGENTS.md /home/agent/.pi/agent/AGENTS.md
-COPY ci/AGENTS.md /home/agent/.copilot/copilot-instructions.md
-COPY ci/AGENTS.md /home/agent/.config/devin/AGENTS.md
+# ===========================================================================
+# Full harness: base + EVERY body unioned together. DEFAULT target —
+# legacy `docker buildx build` without --target keeps producing exactly
+# this image (the agent-team.el ghcr publish job and dormant teams).
+# Modular runs do NOT build this stage; they overlay only their bodies.
+# COPY of a directory MERGES into the destination (never deletes), so
+# overlaying each body's /usr/local + /home/agent onto base keeps base
+# files (team-chat, /opt/agent-team) and sibling-body files intact.
+# ===========================================================================
+FROM base AS harness
+COPY --from=body-opencode /usr/local /usr/local
+COPY --from=body-opencode --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-goose /usr/local /usr/local
+COPY --from=body-goose --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-qoder /usr/local /usr/local
+COPY --from=body-qoder --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-codebuddy /usr/local /usr/local
+COPY --from=body-codebuddy --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-pi /usr/local /usr/local
+COPY --from=body-pi --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-dsh /usr/local /usr/local
+COPY --from=body-dsh --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-mcode /usr/local /usr/local
+COPY --from=body-mcode --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-cursor /usr/local /usr/local
+COPY --from=body-cursor --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-copilot /usr/local /usr/local
+COPY --from=body-copilot --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-omp /usr/local /usr/local
+COPY --from=body-omp --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-devin /usr/local /usr/local
+COPY --from=body-devin --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-cline /usr/local /usr/local
+COPY --from=body-cline --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-gemini /usr/local /usr/local
+COPY --from=body-gemini --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-kilo /usr/local /usr/local
+COPY --from=body-kilo --chown=1001:1001 /home/agent /home/agent
+COPY --from=body-pi-acp /usr/local /usr/local
+COPY --from=body-pi-acp --chown=1001:1001 /home/agent /home/agent
 RUN chown -R agent:agent /home/agent
-
-ENV HOME=/home/agent \
-    GOOSE_PROVIDER=openrouter \
-    GOOSE_MODEL=nvidia/nemotron-3.5-lightning:free
-
-# agent-team.el chat command (Owner order 2026-10-27 #hq: CHAT.org
-# is COMMAND-MAINTAINED — seats send chat via `team-chat', never by
-# hand). Baked at a pinned agent-team.el commit; AGENT_TEAM_EL_SHA is
-# bumped with the consuming repo's kit pointer bump.
-ARG AGENT_TEAM_EL_SHA=ed63926
-RUN mkdir -p /opt/agent-team \
- && curl -fsSL "https://raw.githubusercontent.com/khaalidrafi/agent-team.el/${AGENT_TEAM_EL_SHA}/agent-team.el" \
-      -o /opt/agent-team/agent-team.el
-COPY ci/docker/harness/team-chat /usr/local/bin/team-chat
-RUN chmod +x /usr/local/bin/team-chat
-
-STOPSIGNAL SIGTERM
