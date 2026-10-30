@@ -208,7 +208,11 @@ RUN npm install -g cline \
 #     initialize handshake (grep agentInfo) — the adapter has no
 #     documented --version. Smoke-tested 2026-10-29: answers
 #     "pi-acp" 0.0.34, loadSession t, session list + delete. pi's own
-#     config stays the credential store; nothing exported. ---
+#     config stays the credential store; nothing exported.
+#     FIX 2026-10-30: the install RUN was missing (smoke test only) —
+#     every harness build died here since b59ebba, stalling the
+#     agent-org chain (STALL 46, "segment no-branch"). ---
+RUN npm install -g --ignore-scripts pi-acp
 RUN printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{}}}' \
   | timeout 60 pi-acp | grep -q 'pi-acp'
 
