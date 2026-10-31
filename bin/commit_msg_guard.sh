@@ -81,6 +81,16 @@ while IFS= read -r line; do
       fi
       ;;
   esac
+  # Owner order 2026-10-31 #hq: control subjects describe their change in
+  # plain words — "unknown" means the writer did not know what ran, which
+  # is exactly the spam the Owner rejected.
+  case "$subj" in
+    control:*|ci-turn:*|ci-chain:*)
+      if printf '%s' "$subj" | grep -qiE '(^|[ :])unknown([ ,.;!]|$)'; then
+        reasons="${reasons}control subject says 'unknown' (law: name the lane/seat); "
+      fi
+      ;;
+  esac
   if [ -n "$reasons" ]; then
     echo "VIOLATION ${sha}: ${subj}"
     echo "  -> author: ${author}"

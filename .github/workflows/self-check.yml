@@ -60,6 +60,11 @@ jobs:
           git commit --allow-empty -qm "parser: reject empty org headline tags"
           git commit --allow-empty -qm "control: rotate #+TURN to release-engineer after QA segment"
           bash "$OLDPWD/bin/commit_msg_guard.sh" HEAD~3..HEAD
+          # Owner order 2026-10-31 #hq: control subjects never say "unknown"
+          git commit --allow-empty -qm "control: unknown segment ended"
+          if bash "$OLDPWD/bin/commit_msg_guard.sh" HEAD~1..HEAD; then
+            echo "FAIL: guard passed an 'unknown' control subject"; exit 1
+          fi
           echo "guard fixtures PASS"
 
       - name: law_brief composition
