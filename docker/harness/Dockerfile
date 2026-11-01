@@ -247,9 +247,16 @@ COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.omp/agent/RULES.md
 #     the key set: initialize answers nothing, exit 0; `devin models':
 #     "Not logged in") and honors ONLY the credentials.toml written by
 #     a real `devin auth login' (browser PKCE; --force-manual-token-
-#     flow pastes the browser-issued CODE, not the API key). Plan: the
-#     Owner completes one browser login (courier loop), the durable
-#     credentials seal as a GitHub secret, CI restores them per run.
+#     flow pastes the browser-issued CODE, not the API key — re-measured
+#     2026-11-01 on 3000.11.234: pasting the cog_ key there fails with
+#     "Failed to exchange code"). RE-VERIFIED 2026-11-01, headless
+#     forge replaces the PKCE courier plan: credentials.toml is a plain
+#     TOML {windsurf_api_key = <DEVIN_API_KEY>} (chmod 600) — the CLI
+#     validates it server-side vs server.codeium.com (`devin models`
+#     lists 46 families with the real key; a fake key errors
+#     "Authentication required: invalid api key"). CI restores it per
+#     run from the DEVIN_API_KEY secret; recipe sealed in vault
+#     secrets/README.md (a38e8ab).
 #     Global law slot VERIFIED: ~/.config/devin/AGENTS.md — baked below,
 #     prepend-free. ---
 FROM base AS body-devin
