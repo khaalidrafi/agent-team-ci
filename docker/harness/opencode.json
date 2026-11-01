@@ -31,6 +31,31 @@
         }
       }
     },
+    "antling": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ant Ling",
+      "options": {
+        "baseURL": "https://api.ant-ling.com/v1",
+        "apiKey": "{env:ANTLING_API_KEY}"
+      },
+      "models": {
+        "Ling-3.1-flash": {
+          "name": "Ling 3.1 Flash"
+        },
+        "Ling-3.0-flash": {
+          "name": "Ling 3.0 Flash"
+        },
+        "Ling-3.0-tiny": {
+          "name": "Ling 3.0 Tiny"
+        },
+        "Ling-2.6-1T": {
+          "name": "Ling 2.6 1T"
+        },
+        "Ring-2.6-1T": {
+          "name": "Ring 2.6 1T"
+        }
+      }
+    },
     "groq": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Groq",
