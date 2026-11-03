@@ -140,7 +140,11 @@ COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.qoder/AGENTS.md
 #     for tool use.) ----------------------------------------------------
 FROM base AS body-codebuddy
 RUN npm install -g @tencent-ai/codebuddy-code \
- && timeout 60 codebuddy --version
+ && ln -sf "$(command -v codebuddy)" /usr/local/bin/codebuddy \
+ && timeout 60 /usr/local/bin/codebuddy --version
+# CB free tier 2026-11-03: only hy* models are free (ds@cb offer ended);
+# the chain lane pins --model hy3 explicitly, this ENV documents the default.
+ENV CODEBUDDY_DEFAULT_MODEL=hy3
 COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.codebuddy/CODEBUDDY.md
 
 # --- pi body (earendil-works/pi 1.4.x — "a minimal, extensible agent
