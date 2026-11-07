@@ -11,6 +11,22 @@
 # committed by that agent's author, not the model that ran CI — a
 # `turn(<seat>):` commit authored by the CI bot identity is a violation.
 #
+# Owner order 2026-11-07 #hq ("teams keep missing global instructions"):
+# the 2026-11-07 audit showed the misses were NOT subject problems — they
+# were identity + trailer problems in lanes that never booted from a kit
+# prompt (lead-side container sessions, "Z User <z@container>",
+# "Lead Desk <lead@...>", harness-name authors, and ~100+ commits with
+# zero Co-authored-by trailers). So the guard now enforces the global
+# AGENTS.md commit law on EVERY commit in the range, not only turn(*) ones:
+#   4. BOTH trailers present: `Co-authored-by: <agent/harness>` AND
+#      `Co-authored-by: Khalid Rafi <khaalidrafi@gmail.com>` — the
+#      canonical gmail, no variants (no noreply, no other emails).
+#   5. Author is a model identity MODEL <MODEL@PROVIDER>: well-formed
+#      name <user@host.tld>, never a role/machine/harness name
+#      (unknown, Z User, Lead Desk, agent-team-ci, z.ai-agent, ...).
+#   Exception: commits authored by Khalid himself (khaalidrafi@gmail.com)
+#   are the human's own work — rules 4/5 do not apply to them.
+#
 # Usage: commit_msg_guard.sh <git-range>
 #   e.g. commit_msg_guard.sh origin/ai/main..HEAD
 #
@@ -30,27 +46,38 @@
 #      MODEL <MODEL@PROVIDER> — never agent-team-ci@users.noreply,
 #      never a raw lane string ("model@provider") as the NAME,
 #      never "unknown" (Owner correction 2026-10-30 #hq).
+#   4. Every agent commit carries BOTH co-author trailers (see above).
+#   5. Every agent commit's author is a model identity (see above).
 set -u
 
 RANGE="${1:?usage: commit_msg_guard.sh <git-range>}"
 
 BANNED_RE='^(ci[-_ ]?(turn|chain)|wip\b|progress\b|misc\b|various\b|done\b|temp\b|tmp\b|changes\b|commit\b|stall=[0-9])'
 CI_MACHINE_RE='agent-team-ci@users\.noreply\.github\.com'
+# Rule 5: names that are roles/machines/harnesses, never models
+# (each of these was actually observed in the 2026-11-07 audit).
+NONMODEL_NAME_RE='^(unknown|z user|lead desk|lead-desk|agent-team-ci|z\.ai-agent)$'
+OWNER_EMAIL='khaalidrafi@gmail.com'
+KHALID_TRAILER_RE='^co-authored-by: Khalid Rafi <khaalidrafi@gmail\.com>[[:space:]]*$'
 
 fail=0
 count=0
 # An unresolvable range must FAIL LOUDLY, never pass silently: a gate
 # that cannot read the history must not wave it through.
-LOG=$(git log --format='%h%x09%an <%ae>%x09%s' "$RANGE" 2>/tmp/cmg-err.txt)
+# Records are RS-separated (\x1e) so multi-line commit bodies travel
+# inside one record; fields are tab-separated:
+#   sha \t author-name \t author-email \t subject \t body
+LOG=$(git log --format='%h%x09%an%x09%ae%x09%s%x09%b%x1e' "$RANGE" 2>/tmp/cmg-err.txt)
 if [ $? -ne 0 ]; then
   echo "commit-msg guard: BAD RANGE '${RANGE}' — $(head -1 /tmp/cmg-err.txt)"
   rm -f /tmp/cmg-err.txt
   exit 2
 fi
 rm -f /tmp/cmg-err.txt
-while IFS= read -r line; do
-  [ -n "$line" ] || continue
-  IFS=$'\t' read -r sha author subj <<< "$line"
+while IFS= read -rd $'\x1e' record; do
+  [ -n "$record" ] || continue
+  IFS=$'\t' read -r sha an ae subj body <<< "$record"
+  [ -n "$sha" ] || continue
   count=$((count + 1))
   reasons=""
   words=$(printf '%s' "$subj" | wc -w)
@@ -67,17 +94,11 @@ while IFS= read -r line; do
   # never a raw lane string as the name, never "unknown".
   case "$subj" in
     turn\(*)
-      if printf '%s' "$author" | grep -qE "$CI_MACHINE_RE"; then
+      if printf '%s' "$ae" | grep -qE "$CI_MACHINE_RE"; then
         reasons="${reasons}agent work authored by the CI machine (law: turn work carries the agent's author); "
       fi
-      if printf '%s' "$author" | grep -qE '^[^<]*@[^<]*<'; then
+      if printf '%s' "$an" | grep -qE '^[^<]*@[^<]*<'; then
         reasons="${reasons}author name is a lane string, not a model name (law: MODEL <MODEL@PROVIDER>); "
-      fi
-      if printf '%s' "$author" | grep -qiE '^[^<]*unknown[^<]*<'; then
-        reasons="${reasons}author name is unknown (law: author is a model identity MODEL <MODEL@PROVIDER>); "
-      fi
-      if ! printf '%s' "$author" | grep -qE '<[^@]+@[^>]+>$'; then
-        reasons="${reasons}author email malformed (law: MODEL <MODEL@PROVIDER>); "
       fi
       ;;
   esac
@@ -91,17 +112,37 @@ while IFS= read -r line; do
       fi
       ;;
   esac
+  # Rules 4+5 (Owner 2026-11-07 #hq): global commit law on EVERY commit.
+  # Khalid's own commits are the human's work — outside this gate.
+  if [ "$ae" != "$OWNER_EMAIL" ]; then
+    if ! printf '%s\n' "$body" | grep -qiE "$KHALID_TRAILER_RE"; then
+      reasons="${reasons}missing trailer 'Co-authored-by: Khalid Rafi <khaalidrafi@gmail.com>' (canonical email, no variants); "
+    fi
+    trailers=$(printf '%s\n' "$body" | grep -icE '^co-authored-by:' || true)
+    if [ "${trailers:-0}" -lt 2 ]; then
+      reasons="${reasons}needs BOTH trailers (agent/harness + owner), found ${trailers:-0}; "
+    fi
+    if printf '%s' "$an" | grep -qiE "$NONMODEL_NAME_RE"; then
+      reasons="${reasons}author is a role/machine/harness name, not a model (law: MODEL <MODEL@PROVIDER>); "
+    fi
+    if ! printf '%s' "$ae" | grep -qE '^[^ <>,]+@[^ <>,]+\.[A-Za-z]{2,}$'; then
+      reasons="${reasons}author email malformed (law: MODEL <MODEL@PROVIDER>); "
+    fi
+    if printf '%s' "$ae" | grep -qE "$CI_MACHINE_RE"; then
+      reasons="${reasons}author is the CI machine identity; "
+    fi
+  fi
   if [ -n "$reasons" ]; then
     echo "VIOLATION ${sha}: ${subj}"
-    echo "  -> author: ${author}"
+    echo "  -> author: ${an} <${ae}>"
     echo "  -> ${reasons}"
-    echo "     law: subjects name WHAT changed (file/feature/behavior + effect); turn work carries the agent's model author (MODEL <MODEL@PROVIDER>)"
+    echo "     law: subjects name WHAT changed; author = MODEL <MODEL@PROVIDER>; BOTH trailers (harness + Khalid Rafi <khaalidrafi@gmail.com>)"
     fail=1
   fi
 done <<< "$LOG"
 
 if [ "$fail" = 0 ]; then
-  echo "commit-msg guard: ${count} commit(s) in ${RANGE} all describe their changes"
+  echo "commit-msg guard: ${count} commit(s) in ${RANGE} all pass (subject + identity + trailers)"
 else
   echo "commit-msg guard: FAIL — ${RANGE} carries violations (see above)"
 fi
