@@ -1,0 +1,19 @@
+#+title: AI-REVIEW — agent-team-ci
+
+* How this file is used
+
+Owner law (global AGENTS.md): AI-generated code must be easy to review.
+Anything the owner or a reviewer should personally look at lands here as
+a TODO tree, kept current with the code that prompted it.
+
+* Review tree (initial — 2026-11-07)
+
+- TODO Review =scripts/intern_elisp.py= — the model request lane
+  (pacing, =--free-scan=, honest ERR lines). Most consequential file in
+  the kit; every team's dispatches flow through it.
+- TODO Review =scripts/g2_ring_review.py= — the G2 ring lane (output
+  contract, never a fabricated verdict).
+- TODO Review =bin/= and =templates/= — dispatch prompts teams boot
+  from; drift here propagates to every team at once.
+- TODO README.md is the only doc; per owner preference (Org over
+  Markdown) the key sections should move to an Org file.
