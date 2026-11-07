@@ -119,25 +119,29 @@ def grade(t, out_txt):
         notes = ["answers=%s" % "".join(letters[:4])]
     return s, notes
 
-MODELS = ["inclusionai/ling-3.1-flash", "inclusionai/ling-3.0-flash"]
-argv = sys.argv[1:]
-if argv == ["--free-scan"]:
-    for created, mid, ctx in free_scan():
-        when = time.strftime("%Y-%m-%d", time.gmtime(created)) if created else "?"
-        print("%s | ctx=%s | added=%s" % (mid, ctx, when))
-    sys.exit(0)
-if argv:
-    MODELS = argv
-scorecards = {}
-for model in MODELS:
-    sc = {}
-    for t, prompt in TASKS.items():
-        content, reasoning, cost = ask(model, prompt)
-        score, notes = grade(t, content if content.strip() else reasoning)
-        sc[t] = (score, notes, cost, (content or reasoning)[:400])
-        print("%s | %s | %d | %s" % (model.split("/")[1], t, score, ",".join(notes)))
-    scorecards[model] = sc
-    print()
+def _battery_main():
+    MODELS = ["inclusionai/ling-3.1-flash", "inclusionai/ling-3.0-flash"]
+    argv = sys.argv[1:]
+    if argv == ["--free-scan"]:
+        for created, mid, ctx in free_scan():
+            when = time.strftime("%Y-%m-%d", time.gmtime(created)) if created else "?"
+            print("%s | ctx=%s | added=%s" % (mid, ctx, when))
+        sys.exit(0)
+    if argv:
+        MODELS = argv
+    scorecards = {}
+    for model in MODELS:
+        sc = {}
+        for t, prompt in TASKS.items():
+            content, reasoning, cost = ask(model, prompt)
+            score, notes = grade(t, content if content.strip() else reasoning)
+            sc[t] = (score, notes, cost, (content or reasoning)[:400])
+            print("%s | %s | %d | %s" % (model.split("/")[1], t, score, ",".join(notes)))
+        scorecards[model] = sc
+        print()
 
-json.dump(scorecards, open(OUT + "/scorecards.json", "w"), indent=1)
-print("saved", OUT + "/scorecards.json")
+    json.dump(scorecards, open(OUT + "/scorecards.json", "w"), indent=1)
+    print("saved", OUT + "/scorecards.json")
+
+
+if __name__ == "__main__":    _battery_main()
