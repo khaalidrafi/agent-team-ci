@@ -49,3 +49,44 @@ Scored statically here; the CI kit runs the same battery under real
 
 Candidate outputs graded on behavior, not marketing; grader bugs found
 during this run are recorded above, not hidden.
+
+* Free cohort — 2026-11-07 (Owner: "intern latest free models")
+
+Every request ran through THIS harness (scripts/intern_elisp.py, the
+Lead's direct lane) — Owner 2026-11-07 #hq: "You don't make requests
+from ur sandbox. You use agent-team-ci!"  Harness upgrades landed with
+this run: =--free-scan= (live OpenRouter zero-cost index), candidate
+slugs on argv, ~15 req/min pacing, Retry-After-aware 429 backoff, and
+honest ERR rows — a throttled task is recorded as throttled, never
+graded as a zero.
+
+** Live :free roster (scan 2026-11-07 ~04:30 UTC, newest first)
+
+liquid/lfm-3-1.7b:free (Nov 6) · stealth/crouton-alpha (Nov 3, 1M ctx)
+· recursive/flint-v1.0:free (Oct 21) · xingchen-agi/xing4.0-29b-a4b:free
+(Oct 16) · nvidia/nemotron-3.5-super-vl:free (Oct 15, 1M ctx) ·
+dots-studio/dots-3-note-preview:free (512K) · liquid/lfm-2.5-2.6b:free
+· nvidia/nemotron-3.5-lightning:free · cohere/north-mini-code:free ·
+nvidia/nemotron-3-ultra-550b-a55b:free · nemotron-3-nano-omni:free ·
+google/gemma-4 26b/31b:free · openrouter/free (auto-router).
+
+** Battery run — quota-blocked after two real cards
+
+Cohort of 7 (the six newest + north-mini-code). The OpenRouter free
+daily allowance was already spent when the run started: every task from
+lfm-3-1.7b, flint-v1.0, xing4.0 (T3 onward), nemotron-3.5-super-vl,
+nemotron-3.5-lightning and north-mini-code returned 429 through the
+full Retry-After backoff (a fresh single-model probe re-confirmed it);
+stealth/crouton-alpha is 403-credits-walled on this key. Recorded as
+BLOCKED, not failed — retest after the daily reset (00:00 UTC /
+06:00 Asia/Dhaka).
+
+- xingchen-agi/xing4.0-29b-a4b:free — the only member with real cards:
+  T1-write 5/5 (anchored ** prefix match, complete docstring, cons
+  return) and T2-fix 4/4 (string-prefix-p fix, no collateral damage)
+  before the quota died mid-run; T3/T4 pending. VERDICT: PROMISING,
+  pooled — full battery at the reset before any seat talk.
+- No hires this run. The bench (ling-3.1-flash) and the seated QA
+  brain (nemotron-3.5-lightning, free on kilo/NIM/opencode) unchanged.
+- Raw evidence: /tmp/intern/scorecards-free-2026-11-07.json (workspace
+  copy scripts/intern_results/free-cohort-2026-11-07.json).
