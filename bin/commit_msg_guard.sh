@@ -76,7 +76,15 @@ fi
 rm -f /tmp/cmg-err.txt
 while IFS= read -rd $'\x1e' record; do
   [ -n "$record" ] || continue
-  IFS=$'\t' read -r sha an ae subj body <<< "$record"
+  # Split ONLY the 4 leading tab fields by parameter expansion — `read`
+  # stops at the first NEWLINE and would drop every body line after the
+  # first, i.e. both Co-authored-by trailers of any multi-line body
+  # (found live 2026-11-08: the guard false-FAILed its own author).
+  sha=${record%%$'\t'*};      rest=${record#*$'\t'}
+  an=${rest%%$'\t'*};         rest=${rest#*$'\t'}
+  ae=${rest%%$'\t'*};         rest=${rest#*$'\t'}
+  subj=${rest%%$'\t'*}
+  body=${rest#*$'\t'}
   [ -n "$sha" ] || continue
   count=$((count + 1))
   reasons=""
