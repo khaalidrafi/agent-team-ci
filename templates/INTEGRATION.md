@@ -40,15 +40,14 @@ a local fork without an upstream PR is a compliance violation.
 
 ## 3. Delivering both rule files (copy at build; paste only where needed)
 
-For 8 tools (OpenCode, Goose, Qoder, CodeBuddy, OMP, pi, Copilot,
-Devin) the
+For 11 tools (OpenCode, Goose, Qoder, CodeBuddy, OMP, pi, Copilot,
+Devin, Gemini, Cline, Kilo) the
 build copies the global rule file into the tool's own settings file —
 nothing else needed. The project rule file is the repo's own root
 `AGENTS.md`, which every tool reads from the working directory anyway
 (Owner 2026-10-27 #hq: "no need to prepend with law_brief.sh").
 
-The SIX tools without a settings file (dsh / Cursor / mcode / Cline /
-gemini-cli / kilo) MUST
+The THREE tools without a settings file (dsh / Cursor / mcode) MUST
 still get the global rules by pasting them in front of the prompt —
 otherwise they see only the project rules:
 

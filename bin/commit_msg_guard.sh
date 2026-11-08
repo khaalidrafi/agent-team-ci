@@ -92,6 +92,15 @@ while IFS= read -rd $'\x1e' record; do
   if [ "$words" -lt 3 ]; then
     reasons="${reasons}subject has <3 words; "
   fi
+  # Rule 6 (Owner 2026-11-08 #hq): "Keep them simple, concise and
+  # straightforward! Description goes to the line after commit message!
+  # Having ONE BIG LINE trying to say it ALL is CRAP!" The subject NAMES
+  # the change; the description lives in the body. Subject cap = 72
+  # chars, matching the git log --oneline convention and the seat
+  # prompt's "subject <= 72 chars" law.
+  if [ "$(printf '%s' "$subj" | wc -c)" -gt 72 ]; then
+    reasons="${reasons}subject is $(( $(printf '%s' "$subj" | wc -c) )) chars (>72) — keep the subject short, put the description in the body; "
+  fi
   if printf '%s' "$subj" | grep -qiE "$BANNED_RE"; then
     reasons="${reasons}mechanical/turn-metadata subject; "
   fi

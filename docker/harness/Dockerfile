@@ -84,9 +84,26 @@ STOPSIGNAL SIGTERM
 #   pi        ~/.pi/agent/AGENTS.md (user instructions across workdirs)
 #   Copilot   ~/.copilot/copilot-instructions.md (user-level global)
 #   Devin     ~/.config/devin/AGENTS.md (rules for every project)
-#   dsh / Cursor / mcode / Cline / gemini-cli / kilo: NO verified global
-#             rules slot — the global law rides ci/bin/law_brief.sh
-#             (REQUIRED for these bodies), LOCAL law = repo-root AGENTS.md.
+#   Gemini    ~/.gemini/GEMINI.md (global context file, loaded FIRST in
+#             the hierarchical memory — geminicli.com/docs/cli/gemini-md,
+#             docs verified 2026-11-08)
+#   Cline     ~/.cline/rules/ (global rules dir — docs.cline.bot/
+#             customization/cline-rules: searches ~/Documents/Cline/Rules,
+#             ~/.cline/rules, ~/Cline/Rules; verified 2026-11-08)
+#   Kilo      ~/.config/kilo/AGENTS.md (global instructions — kilo.ai
+#             docs: "place an AGENTS.md file in your global config
+#             directory"; verified 2026-11-08)
+#   dsh / Cursor / mcode: NO verified global rules slot — the global law
+#             rides ci/bin/law_brief.sh (REQUIRED for these bodies),
+#             LOCAL law = repo-root AGENTS.md.
+#             - dsh: workspace instructions ride the dsh-agent-instructions
+#               plugin (deepseek-harness docs, 2026-11-08) — no user-global
+#               file path documented.
+#             - Cursor: CLI supports project .cursor/rules + project
+#               AGENTS.md; "User Rules" are dashboard-only (cursor.com/
+#               docs/rules + /docs/cli/using, re-checked 2026-11-08).
+#             - mcode: reads project AGENTS.md (mcode init writes it);
+#               no user-global path documented.
 # ===========================================================================
 
 # --- OpenCode body (preinstalled once, reused every turn) -------------------
@@ -274,13 +291,17 @@ COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.config/devin/AGENTS.md
 #     ACP server: `cline --acp' (what agent-org fronts). Version check
 #     is FATAL. AUTH (never baked): its own credential store — vault
 #     holds CLINE_API_KEY / CLINE_AUTH_JSON for CI injection; --data-dir
-#     isolates state per seat. NO verified global rules path — the
-#     global law rides ci/bin/law_brief.sh (REQUIRED for this body,
-#     same treatment as dsh/Cursor/mcode), LOCAL law = repo-root
-#     AGENTS.md. No invented paths. ---
+#     isolates state per seat. GLOBAL law: BAKED to ~/.cline/rules/
+#     global-law.md below (docs.cline.bot global rules dir, verified
+#     2026-11-08) — prepend-free, same as the other baked bodies; LOCAL
+#     law = repo-root AGENTS.md (also .clinerules/ auto-read). ---
 FROM base AS body-cline
 RUN npm install -g cline \
  && timeout 60 cline --version
+# Global law bake (docs verified 2026-11-08): docs.cline.bot/
+# customization/cline-rules — global rules dirs are ~/Documents/Cline/
+# Rules, ~/.cline/rules and ~/Cline/Rules; all files in the dir load.
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.cline/rules/global-law.md
 
 # --- gemini-cli body (WO-16 Lead step, Owner order 2026-10-29 #hq "Add
 #     all missing ACP clients to agent-org"): the parity seat wired the
@@ -293,6 +314,10 @@ RUN npm install -g cline \
 FROM base AS body-gemini
 RUN npm install -g @google/gemini-cli \
  && timeout 60 gemini --version
+# Global law bake (docs verified 2026-11-08): gemini-cli loads
+# ~/.gemini/GEMINI.md FIRST on every prompt (hierarchical memory:
+# global -> project -> subdirs).
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.gemini/GEMINI.md
 
 # --- kilo body (WO-20 half (a), Owner order 2026-10-29 #hq "add Kilo
 #     Code"): bake a kilo body beside the devin/cline bodies. npm
@@ -303,6 +328,9 @@ RUN npm install -g @google/gemini-cli \
 FROM base AS body-kilo
 RUN npm install -g @kilocode/cli \
  && timeout 60 kilo --version
+# Global law bake (docs verified 2026-11-08): kilo.ai docs — "place an
+# AGENTS.md file in your global config directory" = ~/.config/kilo/.
+COPY --chown=1001:1001 ci/AGENTS.md /home/agent/.config/kilo/AGENTS.md
 
 # --- pi-acp adapter (github.com/svkozak/pi-acp; npm --ignore-scripts,
 #     the same hygiene as the pi body). Closes the ONE body the image
