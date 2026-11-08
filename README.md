@@ -11,11 +11,11 @@ Owner orders landed 2026-10-27 (#hq):
 2. **"Configure ALL agents in Docker to read both global and local
    AGENTS.md"** — the canonical harness bakes the global law into each
    body's verified global/user rules slot (OpenCode, Goose, Qoder,
-   CodeBuddy, OMP, pi, Copilot, Devin) and bodies auto-read the repo's own
-   AGENTS.md; `bin/law_brief.sh` is REQUIRED for the six bodies
-   without a baked global slot (dsh / Cursor / mcode / Cline /
-   gemini-cli / kilo — Cline, gemini-cli and kilo added 2026-10-29,
-   WO-16/WO-20) — Copilot has a
+   CodeBuddy, OMP, pi, Copilot, Devin, Gemini, Cline, Kilo — 11 bodies)
+   and bodies auto-read the repo's own AGENTS.md; `bin/law_brief.sh`
+   is REQUIRED for the three bodies without a baked global slot
+   (dsh / Cursor / mcode — no documented user-global rules path,
+   re-checked 2026-11-08) — Copilot has a
    VERIFIED user-level path ($HOME/.copilot/copilot-instructions.md)
    and is baked; for baked bodies no prepend is needed, Owner
    2026-10-27 #hq: "no need to prepend with law_brief.sh".
