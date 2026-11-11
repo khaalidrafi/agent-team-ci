@@ -67,6 +67,23 @@ RUN mkdir -p /opt/agent-team \
 COPY ci/docker/harness/team-chat /usr/local/bin/team-chat
 RUN chmod +x /usr/local/bin/team-chat
 
+# Modern Web Guidance skills pack (Owner order 2026-11-11 #hq: "Add
+# GoogleChrome/modern-web-guidance to your docker harness"). Baked into
+# the SHARED base so every agent body gets it, at a pinned upstream SHA
+# (same pinning law as AGENT_TEAM_EL_SHA); MWG_SHA bumps with the kit
+# pointer bump. Agents consult /opt/modern-web-guidance/skills for
+# modern web platform work (CSS/HTML/DOM/JS APIs) and run
+# `npx modern-web-guidance@latest search|retrieve|legacy-scan` when
+# network is up — see the Environment section of ci/AGENTS.md.
+ARG MWG_SHA=4dd968349e54ca45a05dd5c818fb035c9054b022
+RUN git init -q /opt/modern-web-guidance \
+ && git -C /opt/modern-web-guidance remote add origin https://github.com/GoogleChrome/modern-web-guidance.git \
+ && git -C /opt/modern-web-guidance fetch -q --depth 1 origin "${MWG_SHA}" \
+ && git -C /opt/modern-web-guidance checkout -q --detach FETCH_HEAD \
+ && rm -rf /opt/modern-web-guidance/.git \
+ && chmod -R a+rX /opt/modern-web-guidance \
+ && test -d /opt/modern-web-guidance/skills && test -f /opt/modern-web-guidance/README.md
+
 STOPSIGNAL SIGTERM
 
 # ===========================================================================
