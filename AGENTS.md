@@ -9,6 +9,7 @@
 -   `guix system` / `guix home reconfigure` recompiles the local `brix` channel; be patient and never run two instances in parallel. Use `-v` for progress.
 -   Search with modern tools, always: `rg` (not `grep -r`), `fd` (not `find`), and `rg --files` / `fd -t f` for listings. They are faster, they respect `.gitignore`, and they do not stall the machine scanning `/gnu/store`. Never let `find /` or `grep -r /` near a path run: bound searches with `-d`/`--max-depth` and exclude `/gnu/store`, `~/.guix-home`, `~/.cache` etc.
 -   Modern Web Guidance pack: the docker harness bakes GoogleChrome/modern-web-guidance at `/opt/modern-web-guidance` (pinned SHA; bump via `MWG_SHA` in `ci/docker/harness/Dockerfile`). For web platform work (CSS/HTML/DOM/JS APIs), consult its `skills/` first and prefer modern patterns over legacy ones; `npx modern-web-guidance@latest search|retrieve|legacy-scan` is available when network is up.
+-   Kit skills pack: the harness bakes `ci/skills` to `/opt/agent-team-ci-skills` (submodule-pinned). Before any Cloudflare deploy or wrangler-config change, run `python3 /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py .` — it flags committed tokens, plaintext secret-shaped `vars`, committed `.dev.vars`, static dirs missing `_headers` (CSP/HSTS), and stale `compatibility_date`. Exit 1 = CRITICAL/HIGH: fix before the deploy.
 
 
 ## Search tools
