@@ -84,6 +84,17 @@ RUN git init -q /opt/modern-web-guidance \
  && chmod -R a+rX /opt/modern-web-guidance \
  && test -d /opt/modern-web-guidance/skills && test -f /opt/modern-web-guidance/README.md
 
+# Kit skills (Owner order 2026-11-12 #hq: "add cloudflare security audit
+# skill"): ci/skills is COPYed into the SHARED base so every agent body
+# carries the whole pack; the submodule pointer pins skill versions per
+# commit (no network fetch needed). First pack:
+# cloudflare-security-audit — static wrangler/.dev.vars/_headers/token
+# hygiene audit, run before any Cloudflare deploy; exit 1 = CRITICAL/HIGH.
+COPY ci/skills /opt/agent-team-ci-skills
+RUN chmod -R a+rX /opt/agent-team-ci-skills \
+ && test -f /opt/agent-team-ci-skills/cloudflare-security-audit/SKILL.md \
+ && test -x /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py
+
 STOPSIGNAL SIGTERM
 
 # ===========================================================================
