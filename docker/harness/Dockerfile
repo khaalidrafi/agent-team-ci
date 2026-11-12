@@ -95,6 +95,24 @@ RUN chmod -R a+rX /opt/agent-team-ci-skills \
  && test -f /opt/agent-team-ci-skills/cloudflare-security-audit/SKILL.md \
  && test -x /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py
 
+# Cloudflare security-audit-skill (Owner order 2026-11-12 #hq: "build our
+# own vulnerability harness" after blog.cloudflare.com/
+# build-your-own-vulnerability-harness/). The released CF skill is the
+# deep-methodology companion (attack classes, hunting prompts, findings
+# schema + mechanical validators); our own harness lives in
+# ci/skills/vulnerability-harness (orchestrator + fleet scanner).
+# Pinned like MWG; CF_SAS_SHA bumps with the kit pointer bump.
+ARG CF_SAS_SHA=c1c8a8c1471069fb0e188eeaff69b8e8db6564a8
+RUN git init -q /opt/security-audit-skill \
+ && git -C /opt/security-audit-skill remote add origin https://github.com/cloudflare/security-audit-skill.git \
+ && git -C /opt/security-audit-skill fetch -q --depth 1 origin "${CF_SAS_SHA}" \
+ && git -C /opt/security-audit-skill checkout -q --detach FETCH_HEAD \
+ && rm -rf /opt/security-audit-skill/.git \
+ && chmod -R a+rX /opt/security-audit-skill \
+ && test -f /opt/security-audit-skill/skills/security-audit/SKILL.md \
+ && test -f /opt/security-audit-skill/skills/security-audit/report-schema.json \
+ && test -f /opt/security-audit-skill/skills/security-audit/validate-findings.cjs
+
 STOPSIGNAL SIGTERM
 
 # ===========================================================================
