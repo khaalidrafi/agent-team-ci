@@ -1,0 +1,2234 @@
+#+TITLE: Fleet Security Audit 2026-11-12 (all repos)
+#+DATE: 2026-11-12T02:34:11Z
+
+Scanned repos: 42 | Findings: 364 | medium: 44 | low: 130 | info: 190
+
+Method: deterministic fleet scan (agent-team-ci vulnerability harness,
+mechanical layer) after Cloudflare's 'Build your own vulnerability
+harness'. Secrets are redacted (type + location only, secret law).
+Severity anchors: critical = unauth code exec / full store access;
+high = defeats an explicit control (incl. committed live creds);
+medium = real boundary issue, limited blast radius.
+
+* actlog (1)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/ci.yml:8
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-a6f47d601ebe7959 (detector: yml:unpinned_action)
+
+* admineverywhere (22)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-all.yml:142
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-c9cdbcb2606201ea (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-all.yml:177
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-6812cc31ff1578f3 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-all.yml:227
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-170896661d1edc74 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-all.yml:320
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-d643170b19a30dfa (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-demo.yml.disabled:57
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-529a240ff35f41d6 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-demo.yml.disabled:130
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-d1ff46000439855c (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-demo.yml.disabled:175
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-c5e3bfd0a22b01aa (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-demo.yml.disabled:235
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-f3452d49fd512332 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: dtolnay/rust-toolchain@stable
+   - where: .github/workflows/build-demo.yml.disabled:330
+   - evidence: dtolnay/rust-toolchain@stable
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-08bd392524454a62 (detector: yml:unpinned_action)
+
+** [MEDIUM] Key material file committed: debug.keystore
+   - where: app/src-tauri/signing/debug.keystore:1
+   - evidence: file present (contents not scanned)
+   - fix: remove from repo; if a debug artifact, document why it is safe
+   - id: VH-d040c200d693ed58 (detector: keyfile)
+
+** [MEDIUM] Django DEBUG-True in committed settings
+   - where: demo-backend/core/settings.py:14
+   - evidence: DEBUG - True  # DEV ONLY
+   - fix: disable in deployed settings
+   - id: VH-1296280e0c237387 (detector: cfg:debug)
+
+** [MEDIUM] Django ALLOWED_HOSTS wildcard
+   - where: demo-backend/core/settings.py:15
+   - evidence: ALLOWED_HOSTS - ("star ")  # DEV ONLY
+   - fix: list explicit hosts
+   - id: VH-264d2d1517a201e2 (detector: cfg:hosts)
+
+** [MEDIUM] Django ALLOWED_HOSTS wildcard
+   - where: demo-backend/core/settings.py:131
+   - evidence: active.append("ALLOWED_HOSTS-('star ')")
+   - fix: list explicit hosts
+   - id: VH-783b881d70960790 (detector: cfg:hosts)
+
+** [MEDIUM] Django ALLOWED_HOSTS wildcard
+   - where: plugin/tests/test_demo_settings.py:4
+   - evidence: The demo rig runs wide open (DEBUG-True, ALLOWED_HOSTS-('star '),
+   - fix: list explicit hosts
+   - id: VH-6ecb3148e2a7335d (detector: cfg:hosts)
+
+** [LOW] Django SECRET_KEY is a labeled dev-only dummy (demo backend)
+   - where: demo-backend/core/settings.py:13
+   - evidence: value is the literal string 'dev-only-not-secret' (safe dummy)
+   - fix: fine for the demo; if demo-backend is ever deployed for real, load SECRET_KEY from env first
+   - id: VH-triage-0001 (detector: doe-triage)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-6a677050e34d82f3 (detector: docker:no_user)
+
+** [INFO] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/agent-review.yml:40
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-29f4f5e223d98011 (detector: yml:expr_injection)
+
+** [INFO] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/burn-codebuddy-fix.yml:65
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-389bc25b0984367e (detector: yml:expr_injection)
+
+** [INFO] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/burn-codebuddy.yml:47
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-e22d0bf25b1fb20b (detector: yml:expr_injection)
+
+** [INFO] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/copilot-wave.yml:36
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-e4637252a5103c1b (detector: yml:expr_injection)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:34
+   - evidence: && curl -fsSL https://opencode.ai/install | bash \
+   - fix: verify checksums when feasible
+   - id: VH-a95c1bcc615a159c (detector: docker:curl_sh)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:54
+   - evidence: && curl -fsSL https://qoder.com/install | bash \
+   - fix: verify checksums when feasible
+   - id: VH-e71f3622fbef1aea (detector: docker:curl_sh)
+
+* agent-org (1)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-ba9d1d1c59bbd03b (detector: docker:no_user)
+
+* agent-shepherd (1)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-343bc381691145b7 (detector: docker:no_user)
+
+* agent-team-ci (6)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-f2944de9d9da8ed3 (detector: docker:no_user)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:48
+   - evidence: RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+   - fix: verify checksums when feasible
+   - id: VH-83ecc425a3a04d37 (detector: docker:curl_sh)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:141
+   - evidence: && curl -fsSL https://opencode.ai/install | bash \
+   - fix: verify checksums when feasible
+   - id: VH-c2fb553adaa4d976 (detector: docker:curl_sh)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:172
+   - evidence: && curl -fsSL https://qoder.com/install | bash \
+   - fix: verify checksums when feasible
+   - id: VH-b9a82eea23780f85 (detector: docker:curl_sh)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:246
+   - evidence: && curl -fsSL https://cursor.com/install | bash \
+   - fix: verify checksums when feasible
+   - id: VH-8370cc3d59d27559 (detector: docker:curl_sh)
+
+** [INFO] curl | shell installer
+   - where: docker/harness/Dockerfile:279
+   - evidence: && curl -fsSL https://omp.sh/install | sh -s -- --binary \
+   - fix: verify checksums when feasible
+   - id: VH-a1b87bf08b214d59 (detector: docker:curl_sh)
+
+* agent-team.el (1)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-35f650c5e0b1c7a2 (detector: docker:no_user)
+
+* android-usage.el (1)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/ci.yml:24
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-99a0f2a67b18347c (detector: yml:unpinned_action)
+
+* docneural (4)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/forge-codebuddy.yml:76
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-40a952b1edc3bd80 (detector: yml:expr_injection)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-70098cdcf3517e70 (detector: docker:no_user)
+
+** [LOW] Possible hard-coded secret assignment: passwd
+   - where: site-corpus/guix/Mail-Services.org:187
+   - evidence: passwd - and ‘…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a87078737c03204d (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: passwd
+   - where: site-corpus/guix/Mail-Services.org:680
+   - evidence: passwd - and ‘…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-9bda669e277030ab (detector: regex:generic_secret)
+
+* docneural-ui (4)
+
+** [LOW] Possible hard-coded secret assignment: passwd
+   - where: public/sample/docs/guix--Mail-Services.html:293
+   - evidence: passwd - and ‘…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-2917d1ac2ec28932 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: passwd
+   - where: public/sample/docs/guix--Mail-Services.html:940
+   - evidence: passwd - and ‘…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-9fc98adb521d957f (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: passwd
+   - where: public/sample/docs/guix--Mail-Services.org:187
+   - evidence: passwd - and ‘…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-5cba3a908aa6d6a8 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: passwd
+   - where: public/sample/docs/guix--Mail-Services.org:680
+   - evidence: passwd - and ‘…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-1be41d034027d043 (detector: regex:generic_secret)
+
+* keen-keeper (1)
+
+** [LOW] package.json without a lockfile
+   - where: package.json
+   - evidence: no package-lock.json
+   - fix: commit the lockfile for reproducible installs
+   - id: VH-401fc2c467986a40 (detector: deps:no_lock)
+
+* kshell (1)
+
+** [LOW] package.json without a lockfile
+   - where: package.json
+   - evidence: no package-lock.json
+   - fix: commit the lockfile for reproducible installs
+   - id: VH-c1cba2878fb6102d (detector: deps:no_lock)
+
+* llmfisher (2)
+
+** [LOW] Floating :latest tag
+   - where: Dockerfile:10
+   - evidence: COPY --from-ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+   - fix: pin digests/versions
+   - id: VH-9b4fd063fefd2b7c (detector: docker:latest)
+
+** [LOW] No USER directive (runs as root)
+   - where: Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-4f9c9d602a5477bf (detector: docker:no_user)
+
+* org-learn.el (1)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-53b723a40036102b (detector: docker:no_user)
+
+* org-roam (3)
+
+** [MEDIUM] Third-party action not pinned to SHA: JamesIves/github-pages-deploy-action@releases/v4
+   - where: .github/workflows/docs.yml:23
+   - evidence: JamesIves/github-pages-deploy-action@releases/v4
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-d5329cce68462739 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/test.yml:44
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-2f48e39bcaaa7bbb (detector: yml:unpinned_action)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/tidy-issues.yml:25
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-951913cf7a1f567e (detector: yml:expr_injection)
+
+* org-roam-lite-ui (2)
+
+** [MEDIUM] Third-party action not pinned to SHA: ad-m/github-push-action@master
+   - where: .github/workflows/cd.yml:69
+   - evidence: ad-m/github-push-action@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-484f02f39fc52789 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: ad-m/github-push-action@master
+   - where: .github/workflows/manual-build.yml:45
+   - evidence: ad-m/github-push-action@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-22c308d9d00748f2 (detector: yml:unpinned_action)
+
+* slave-agent (301)
+
+** [MEDIUM] pull_request_target + secrets with event guards (verify all consumers gated)
+   - where: .github/workflows/archive-inputs.yml:25
+   - evidence: guards present; confirm every secret-consuming job carries the if:
+   - fix: keep the guards; audit new jobs before adding secrets
+   - id: VH-a332b427bcaf72d3 (detector: yml:prt_secrets_guarded)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/ci-review-comment.yml:38
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-933214ebb2a4737f (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/deploy-site.yml:88
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-34ece2e3cd48f304 (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/desktop-bundled-release.yml:273
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-99ca647a57983fae (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/docker.yml:57
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-c8a954a7e1c6bd5e (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/label-rerun.yml:21
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-8aa7656aa922fe47 (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/lint.yml:198
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-2fc372af87af2a70 (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/lockfile-diff.yml:31
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-d5318da353daa39e (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/sandbox-image.yml:33
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-9bdd11f3279a8c22 (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/stable-release-publication.yml:41
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-c11dd65b6ac76a71 (detector: yml:expr_injection)
+
+** [MEDIUM] Workflow expression interpolated into run: (command injection shape)
+   - where: .github/workflows/supply-chain-audit.yml:71
+   - evidence: github.event.star  inside run script
+   - fix: pass via env: instead of inline ${{ }} interpolation
+   - id: VH-b4e09650c029958f (detector: yml:expr_injection)
+
+** [MEDIUM] pull_request_target + secrets with event guards (verify all consumers gated)
+   - where: .github/workflows/termux-verify.yml:98
+   - evidence: guards present; confirm every secret-consuming job carries the if:
+   - fix: keep the guards; audit new jobs before adding secrets
+   - id: VH-407e159e23c54da1 (detector: yml:prt_secrets_guarded)
+
+** [MEDIUM] TLS verification disabled
+   - where: plugins/security-guidance/patterns.py:184
+   - evidence: regex-r"\bverify\sstar -\sstar False\b|rejectUnauthorized\sstar :\sstar false|InsecureSkipVerify
+   - fix: enable verification
+   - id: VH-8933975d1404df00 (detector: cfg:tls_off)
+
+** [LOW] Possible hard-coded secret assignment: password
+   - where: agent/anthropic_credentials.py:274
+   - evidence: password - + _KE…(20 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-b19973c2c3114331 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: apiKey
+   - where: apps/desktop/src/i18n/de.ts:1634
+   - evidence: apiKey - API-S…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-000160d2eed8b09a (detector: regex:generic_secret)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/harness/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-f668105dace14a98 (detector: docker:no_user)
+
+** [LOW] No USER directive (runs as root)
+   - where: docker/sandbox-desktop.Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-2e3dda5082480ec0 (detector: docker:no_user)
+
+** [LOW] Slack token in git history (historical)
+   - where: docs/messaging.md
+   - evidence: xoxb-…(25 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-53b6e7314b97e8b9 (detector: history:regex:slack_token)
+
+** [LOW] Possible hard-coded secret assignment: api_key
+   - where: hermes_cli/cli_agent_setup_mixin.py:284
+   - evidence: api_key - no-ke…(15 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-68c1cc3adebf00f0 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: api_key
+   - where: hermes_cli/cli_model_switch_mixin.py:944
+   - evidence: api_key - moa-v…(20 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-89a2a2b376c2c1a8 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: api_key
+   - where: hermes_cli/prompt_size.py:63
+   - evidence: api_key - inspe…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-3ce2b1356070cec7 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: api_key
+   - where: hermes_cli/runtime_provider_backends.py:191
+   - evidence: api_key - no-ke…(15 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-0d60a469f0197956 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/af.tui.yaml:1214
+   - evidence: secret - Gehei…(163 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-fad73b2879014808 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/ar.tui.yaml:1214
+   - evidence: secret - أُغلق…(137 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-6f9aff4386022d81 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/de.tui.yaml:1214
+   - evidence: secret - Gehei…(187 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-94bd4fa72d02e477 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/es.tui.yaml:1214
+   - evidence: secret - El pr…(170 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4dc7663e6f438012 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/fr.tui.yaml:1214
+   - evidence: secret - Invit…(51 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c70ed22bc98802a3 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/ga.tui.yaml:1214
+   - evidence: secret - Dúnad…(102 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-41e84ff906efa1aa (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/hu.tui.yaml:1214
+   - evidence: secret - A tit…(150 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a9be71219e3b3b12 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/it.tui.yaml:1214
+   - evidence: secret - Richi…(170 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-444a3d9514429784 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/ja.tui.yaml:1214
+   - evidence: secret - シークレッ…(87 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-9f374ffc9d6f22da (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/ko.tui.yaml:1214
+   - evidence: secret - 시크릿 입…(73 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4b8005e1980a26e3 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/pt.tui.yaml:1214
+   - evidence: secret - Promp…(164 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-e04f983755a703a3 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/ru.tui.yaml:1214
+   - evidence: secret - Запро…(150 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-04e80ca91527391a (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/tr.tui.yaml:1214
+   - evidence: secret - Gizli…(147 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-ed3cad6bcd25b4c0 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/uk.tui.yaml:1214
+   - evidence: secret - Запит…(149 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-ea33f4b2c3b546f0 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/zh-hant.tui.yaml:1214
+   - evidence: secret - 密鑰輸入提…(43 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-ed276c08d9c942ab (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: locales/zh.tui.yaml:1214
+   - evidence: secret - 密钥输入提…(43 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-87db97bd345fd969 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: optional-skills/health/fitness-nutrition/SKILL.md:167
+   - evidence: API_KEY - -DEMO…(10 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-e3d05730d4c165ed (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: optional-skills/health/fitness-nutrition/SKILL.md:189
+   - evidence: API_KEY - -DEMO…(10 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-5b33e15b92ab01ae (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/training/unsloth/references/llms-full.md:7744
+   - evidence: api_key - sk-no…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-b2d1c8ad4d66098f (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/training/unsloth/references/llms-full.md:8234
+   - evidence: api_key - sk-no…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-274a5d0912dd6c4a (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: optional-skills/productivity/here-now/scripts/drive.sh:6
+   - evidence: API_KEY - -}…(2 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c7d8966b58481697 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: optional-skills/productivity/here-now/scripts/publish.sh:6
+   - evidence: API_KEY - -}…(2 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-776bac0b340e9460 (detector: regex:generic_secret)
+
+** [LOW] Google API key in git history (historical)
+   - where: skills/media/gif-search/SKILL.md
+   - evidence: AIzaS…(39 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-fdc0bee4ec74591e (detector: history:regex:google_key)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/agent/test_anthropic_model_cooldowns.py
+   - evidence: sk-an…(36 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-969832574dcdf29f (detector: history:regex:anthropic_key)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/agent/test_anthropic_third_party_oauth_guard.py
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-12d912e3d59050f7 (detector: history:regex:anthropic_key)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/agent/test_bedrock_anthropic_foreign_reasoning.py
+   - evidence: AKIAT…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-d046f3f45eb7198c (detector: history:regex:aws_key_id)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/agent/test_bedrock_integration.py
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-b4d8c79f3e96c300 (detector: history:regex:aws_key_id)
+
+** [LOW] GitHub classic personal access token in git history (historical)
+   - where: tests/agent/test_redact.py
+   - evidence: ghp_a…(42 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-00f1017b590c6f8b (detector: history:regex:github_pat)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/agent/test_redact.py
+   - evidence: sk-or…(45 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-ee1fffde503b9a7f (detector: history:regex:openai_key)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/agent/test_run_agent_codex_responses.py
+   - evidence: sk-an…(39 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-efc28ca82ac16140 (detector: history:regex:anthropic_key)
+
+** [LOW] AWS access key id in git history (also at HEAD)
+   - where: tests/agent/test_switch_model_bedrock_sigv4.py
+   - evidence: AKIAF…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-039d80c50cef5f7c (detector: history:regex:aws_key_id)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/cli/test_quick_commands.py
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-868c0ae13f30cd1a (detector: history:regex:anthropic_key)
+
+** [LOW] GitHub classic personal access token in git history (historical)
+   - where: tests/cron/test_cron_incidents.py
+   - evidence: ghp_A…(40 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-e3f2def9a35af0e1 (detector: history:regex:github_pat)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/e2e/core/providers/test_anthropic_discovery_and_aliases.py
+   - evidence: sk-an…(33 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-fdac7b25c74eeda6 (detector: history:regex:anthropic_key)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/fakes/providers/bedrock_converse.py
+   - evidence: AKIAF…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-e0da92b557de4e7f (detector: history:regex:aws_key_id)
+
+** [LOW] Google API key in git history (also at HEAD)
+   - where: tests/fakes/providers/gemini_native.py
+   - evidence: AIzaF…(39 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-947168fd2daa5f57 (detector: history:regex:google_key)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/gateway/test_api_server.py
+   - evidence: sk-pr…(48 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-8ca3513fee50211b (detector: history:regex:openai_key)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_kanban_wake_scope.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-8005b81e507afc84 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_media_download_retry.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-4c7d45d1756d65c3 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-029396f8e048875b (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_agent_sessions_api.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-b1ded13714bbbafd (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_approval_buttons.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-960247ca74615a66 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_channel_session_scope.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-998da3ce564d509a (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_clarify_buttons.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-876c72a1922edd61 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (also at HEAD)
+   - where: tests/gateway/test_slack_download_ssrf.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-64d4bc7097ac38b4 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (also at HEAD)
+   - where: tests/gateway/test_slack_ignore_other_user_mentions.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-e465d007b4f67699 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_log_noise.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-4779d2002b59b137 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (also at HEAD)
+   - where: tests/gateway/test_slack_peer_agent_smoke.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-5f4dff3e270fece0 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_plugin_setup.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-578f0c5a82b5590e (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (also at HEAD)
+   - where: tests/gateway/test_slack_require_mention_channels.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-831ee4be038237ca (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/gateway/test_slack_socket_reconnect_heal.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-dcc59611b9215a98 (detector: history:regex:slack_token)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/gateway/test_telegram_noise_filter.py
+   - evidence: sk-li…(44 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-076d582c4c1df66c (detector: history:regex:openai_key)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/hermes_cli/test_debug.py
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-7d02e1d287ee2a2f (detector: history:regex:openai_key)
+
+** [LOW] GitHub classic personal access token in git history (also at HEAD)
+   - where: tests/hermes_cli/test_doctor_github_token_probe.py
+   - evidence: ghp_e…(41 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-f59f982970b44277 (detector: history:regex:github_pat)
+
+** [LOW] Anthropic API key in git history (also at HEAD)
+   - where: tests/hermes_cli/test_quick_commands.py
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-5788f674f94933a9 (detector: history:regex:anthropic_key)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/hermes_cli/test_sessions_export_md_cli.py
+   - evidence: sk-pr…(48 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-f7ec0095d60650c3 (detector: history:regex:openai_key)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/hermes_cli/test_setup.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-91e17718df2ea432 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/hermes_cli/test_whatsapp_cloud_setup.py
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-c1b83628675b28b3 (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/manual/cron_inchannel_dm_e2e.py
+   - evidence: xoxb-…(18 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-aff775a12eaf87db (detector: history:regex:slack_token)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/manual/cron_inchannel_e2e.py
+   - evidence: xoxb-…(26 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-808c7f586df09ddd (detector: history:regex:slack_token)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/run_agent/test_anthropic_third_party_oauth_guard.py
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-33cf999d7d3437f5 (detector: history:regex:anthropic_key)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/run_agent/test_run_agent_codex_responses.py
+   - evidence: sk-an…(31 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-9cbf7aadafb7c848 (detector: history:regex:anthropic_key)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/run_agent/test_summarize_api_error.py
+   - evidence: sk-pr…(50 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-90844babccecfb6f (detector: history:regex:openai_key)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/run_agent/test_switch_model_bedrock_sigv4.py
+   - evidence: AKIAF…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-4fd1bcf75502992c (detector: history:regex:aws_key_id)
+
+** [LOW] Slack token in git history (historical)
+   - where: tests/skills/test_openclaw_migration_hardening.py
+   - evidence: xoxb-…(22 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-589bd83469f182b2 (detector: history:regex:slack_token)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/slave_cli/test_debug.py
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-e8ff5ab5182f24cb (detector: history:regex:openai_key)
+
+** [LOW] GitHub classic personal access token in git history (historical)
+   - where: tests/slave_cli/test_doctor_github_token_probe.py
+   - evidence: ghp_e…(41 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-785613521d2789ca (detector: history:regex:github_pat)
+
+** [LOW] Anthropic API key in git history (historical)
+   - where: tests/slave_cli/test_quick_commands.py
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-e7e8916e56641a23 (detector: history:regex:anthropic_key)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/slave_cli/test_sessions_export_md_cli.py
+   - evidence: sk-pr…(48 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-0a47668127c9086d (detector: history:regex:openai_key)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/telemetry/test_exporter_bulk.py
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-c54f9b814b583b96 (detector: history:regex:aws_key_id)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/tools/test_local_env_blocklist.py
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-6e7ce8a12b3976b2 (detector: history:regex:aws_key_id)
+
+** [LOW] AWS access key id in git history (historical)
+   - where: tests/tools/test_mcp_tool.py
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-e84091c9871cd6f8 (detector: history:regex:aws_key_id)
+
+** [LOW] OpenAI-style API key in git history (historical)
+   - where: tests/tui_gateway/test_turn_finished_failure_cause.py
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-19e08abb687389e0 (detector: history:regex:openai_key)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/guides/automation-blueprints.md:95
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-e79c8292ae7c265e (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/guides/webhook-github-pr-review.md:321
+   - evidence: secret - requi…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-fcc6bdb829aceaf8 (detector: regex:generic_secret)
+
+** [LOW] Slack token in git history (historical)
+   - where: website/docs/user-guide/messaging/slack.md
+   - evidence: xoxb-…(24 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-ea32045c0a484ca4 (detector: history:regex:slack_token)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:104
+   - evidence: secret - globa…(22 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-9d8697729361d652 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:108
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-bc50828621700130 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:124
+   - evidence: secret - deplo…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-9dba552f48da84cd (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:143
+   - evidence: secret - todoi…(14 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-e6ce1efe67f586f7 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:181
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-56e5db7a6c19febf (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:401
+   - evidence: secret - globa…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-310012f11a7d5627 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:404
+   - evidence: secret - anten…(22 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-7d222a6acce3708c (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:467
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-981aaf066c83eb45 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:559
+   - evidence: secret - monit…(14 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4ea24379649e1d56 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: website/docs/user-guide/skills/optional/health/health-fitness-nutrition.md:174
+   - evidence: API_KEY - -DEMO…(10 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-2c28e7b403350ebe (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: website/docs/user-guide/skills/optional/health/health-fitness-nutrition.md:196
+   - evidence: API_KEY - -DEMO…(10 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c62e4e2a75eb5f38 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: apiKey
+   - where: website/docusaurus.config.ts:111
+   - evidence: apiKey - 9629e…(32 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-f9befe9dc9df35db (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/guides/automation-blueprints.md:95
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-afa9248a050a5990 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/guides/webhook-github-pr-review.md:314
+   - evidence: secret - requi…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-81e6e7ba44b4e450 (detector: regex:generic_secret)
+
+** [LOW] Slack token in git history (historical)
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md
+   - evidence: xoxb-…(24 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-ba75afed24aebcde (detector: history:regex:slack_token)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:100
+   - evidence: secret - globa…(22 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a3a0b33588b7676d (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:104
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-840154d154630e81 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:120
+   - evidence: secret - deplo…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-e95867902d36558f (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:139
+   - evidence: secret - todoi…(14 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a9a2ecafd21bb70c (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:353
+   - evidence: secret - globa…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-213d5ad92bc75827 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:356
+   - evidence: secret - anten…(22 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-ee2682c11f51fe33 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:420
+   - evidence: secret - githu…(21 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-016d0a9ad4580423 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/health/health-fitness-nutrition.md:171
+   - evidence: API_KEY - -DEMO…(10 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-58d76915dfc38be4 (detector: regex:generic_secret)
+
+** [LOW] Possible hard-coded secret assignment: API_KEY
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/health/health-fitness-nutrition.md:193
+   - evidence: API_KEY - -DEMO…(10 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-3332be37c4dfd081 (detector: regex:generic_secret)
+
+** [INFO] Private key material in git history (historical)
+   - where: agent/redact.py
+   - evidence: PEM header present
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-538bf02b60354667 (detector: history:regex:private_key)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: apps/desktop/electron/native-token-store.test.ts:326
+   - evidence: https://gw.example.com/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-9f50fc90271745f4 (detector: regex:url_creds)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: cli-config.yaml.example:111
+   - evidence: api_key - your-…(13 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c0acb043721606e0 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: Client-Secret
+   - where: cli-config.yaml.example:184
+   - evidence: Client-Secret - ${CF_…(19 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-8d5073fa6a690a6d (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: cli-config.yaml.example:2054
+   - evidence: api_key - ${THE…(16 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-6065d2acdf8e2834 (detector: regex:generic_secret)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: evals/cron_error_diagnostics.py:71
+   - evidence: https://localhost/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-20ccf6a2d5529b7f (detector: regex:url_creds)
+
+** [INFO] Slack token in worktree
+   - where: evals/slack_stream_wire_contract.py:71
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a9a60ffbb1bb1fc4 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: evals/slack_stream_wire_contract.py:74
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-f5d69473a7ec02bf (detector: regex:slack_token)
+
+** [INFO] Slack token in git history (historical)
+   - where: evals/slack_stream_wire_contract.py
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-839a663904f8d3b9 (detector: history:regex:slack_token)
+
+** [INFO] OpenAI-style API key in git history (historical)
+   - where: evals/terminal-bench-2/evaluate_config.yaml
+   - evidence: sk-or…(73 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-143b298b3215cced (detector: history:regex:openai_key)
+
+** [INFO] Possible hard-coded secret assignment: client_secret
+   - where: hermes_cli/mcp_config.py:918
+   - evidence: client_secret - <your…(26 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a0884bcb3645f259 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: hermes_cli/webhook.py:152
+   - evidence: secret - your-…(23 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-531993273570728d (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: client_secret
+   - where: optional-mcps/asana/manifest.yaml:35
+   - evidence: client_secret - ${ASA…(22 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-aa139a87f2b5258d (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/guidance/SKILL.md:289
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a95309a23e4fd1cd (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/guidance/references/backends.md:28
+   - evidence: api_key - your-…(17 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-ec23421e8b0fb467 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/guidance/references/backends.md:53
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-b4f79b760dc53e2c (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/guidance/references/backends.md:95
+   - evidence: api_key - your-…(17 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c7c6de7b93dd9b7a (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/guidance/references/backends.md:120
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-97951ca99c78593b (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/guidance/references/backends.md:155
+   - evidence: api_key - your-…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-7f65a5c6002b57a0 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/inference/outlines/references/backends.md:381
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-18c38ccb60e3043e (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/inference/outlines/references/backends.md:393
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-14f81d50687aa065 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/instructor/SKILL.md:345
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-7e6869bdae453bc2 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/instructor/SKILL.md:363
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-db4c450918488a45 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/instructor/references/providers.md:16
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-8be1e0af23f9e0ea (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/pinecone/SKILL.md:56
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-747d14b6b340c1df (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/qdrant/SKILL.md:430
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-816bbdac6d03782c (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/qdrant/references/troubleshooting.md:117
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-149768d88d4da951 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/research/dspy/SKILL.md:296
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-92095fbce512133f (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: optional-skills/mlops/research/dspy/SKILL.md:308
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-13eb12503e11194d (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: skills/autonomous-ai-agents/hermes-agent/references/providers-and-models.md:55
+   - evidence: api_key - ${THE…(16 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-87c83c64f006b588 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: skills/autonomous-ai-agents/hermes-agent/references/webhooks.md:28
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-8cd59ef952985baa (detector: regex:generic_secret)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_anthropic_model_cooldowns.py:10
+   - evidence: sk-an…(36 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-b6bbef4b73875356 (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_anthropic_third_party_oauth_guard.py:28
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-15c218d49d04bcf6 (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_anthropic_third_party_oauth_guard.py:109
+   - evidence: sk-an…(31 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-b82d69ef0a04145b (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_anthropic_third_party_oauth_guard.py:109
+   - evidence: sk-an…(31 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-b82d69ef0a04145b (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_anthropic_token_scope_isolation.py:95
+   - evidence: sk-an…(31 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-3485e93481c2cd1d (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_anthropic_token_scope_isolation.py:246
+   - evidence: sk-an…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-5649c8a6bba0ca6f (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in git history (historical)
+   - where: tests/agent/test_anthropic_token_scope_isolation.py
+   - evidence: sk-an…(31 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-76e7150b2fa3ce21 (detector: history:regex:anthropic_key)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/agent/test_bedrock_integration.py:92
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a323b4b6d9fdb7e4 (detector: regex:aws_key_id)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/agent/test_bedrock_integration.py:156
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-6d22293eafe9a165 (detector: regex:aws_key_id)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/agent/test_bedrock_integration.py:386
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-8208b758aa9bd438 (detector: regex:aws_key_id)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/agent/test_bedrock_integration.py:464
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-4daf3ff3529aa662 (detector: regex:aws_key_id)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/agent/test_bedrock_integration.py:495
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-8788750861b9afae (detector: regex:aws_key_id)
+
+** [INFO] Private key material in worktree
+   - where: tests/agent/test_context_compressor.py:2389
+   - evidence: PEM header present
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-2a456ca44a5cf30c (detector: regex:private_key)
+
+** [INFO] Private key material in git history (historical)
+   - where: tests/agent/test_context_compressor.py
+   - evidence: PEM header present
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-eaa295378926f5bc (detector: history:regex:private_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_credential_pool.py:1193
+   - evidence: sk-an…(33 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-cfd8ba2698fa3c19 (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in git history (historical)
+   - where: tests/agent/test_credential_pool.py
+   - evidence: sk-an…(33 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-506fb67db89503dd (detector: history:regex:anthropic_key)
+
+** [INFO] Slack token in worktree
+   - where: tests/agent/test_iron_proxy.py:218
+   - evidence: xoxb-…(16 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-338dfe27cd5d7ed1 (detector: regex:slack_token)
+
+** [INFO] Private key material in worktree
+   - where: tests/agent/test_iron_proxy.py:248
+   - evidence: PEM header present
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-f94cf900d4ce1710 (detector: regex:private_key)
+
+** [INFO] Slack token in git history (historical)
+   - where: tests/agent/test_iron_proxy.py
+   - evidence: xoxb-…(16 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-027df98b67f61e8b (detector: history:regex:slack_token)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/agent/test_pre_compress_memory_context.py:120
+   - evidence: https://example.test/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-b5949b083fe1b5ad (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/agent/test_pre_compress_memory_context_handoff.py:138
+   - evidence: https://example.test/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-2f890d8fda00ccb5 (detector: regex:url_creds)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/agent/test_redact.py:286
+   - evidence: ghp_a…(42 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-fd4932aa391f9954 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/agent/test_redact.py:290
+   - evidence: ghp_a…(42 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-b65c656822b92795 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/agent/test_redact.py:294
+   - evidence: ghp_a…(42 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a77bc64fb2c604a3 (detector: regex:github_pat)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/agent/test_redact.py:1336
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-24c98faf1d09af07 (detector: regex:openai_key)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/agent/test_redact.py:808
+   - evidence: https://host.example.com/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-89bd15a89669fedb (detector: regex:url_creds)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/agent/test_run_agent_codex_responses.py:2036
+   - evidence: sk-an…(39 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-eac3c9d0611c4e0e (detector: regex:anthropic_key)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/agent/test_subagent_stop_hook.py:242
+   - evidence: https://example.test:8443/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-d14bc4d65d6da519 (detector: regex:url_creds)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/agent/test_switch_model_bedrock_sigv4.py:34
+   - evidence: AKIAF…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-2d3cff4c5951dc61 (detector: regex:aws_key_id)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/cron/test_cron_incidents.py:154
+   - evidence: ghp_A…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-266845d6d953f445 (detector: regex:github_pat)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/cron/test_run_error_diagnostics.py:8
+   - evidence: https://localhost/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-a95a561966f0d76b (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/cron/test_run_error_diagnostics.py:29
+   - evidence: https://localhost/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-87a6c275248af70a (detector: regex:url_creds)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/e2e/core/providers/test_anthropic_discovery_and_aliases.py:48
+   - evidence: sk-an…(33 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-179ac06213ba2b89 (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/e2e/core/providers/test_anthropic_oracle.py:70
+   - evidence: sk-an…(32 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c953fdbf9ee5c517 (detector: regex:anthropic_key)
+
+** [INFO] Anthropic API key in git history (historical)
+   - where: tests/e2e/core/providers/test_anthropic_oracle.py
+   - evidence: sk-an…(32 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-19a8175b4047c875 (detector: history:regex:anthropic_key)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/fakes/providers/bedrock_converse.py:47
+   - evidence: AKIAF…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-95077e79c5fea7aa (detector: regex:aws_key_id)
+
+** [INFO] Google API key in worktree
+   - where: tests/fakes/providers/gemini_native.py:44
+   - evidence: AIzaF…(39 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-174db2b5f24100b6 (detector: regex:google_key)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/gateway/test_api_server.py:765
+   - evidence: sk-pr…(48 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-98d7caf26a8d52d2 (detector: regex:openai_key)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/gateway/test_buzz_adapter.py:1213
+   - evidence: https://test.relay/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-638f7ce60344f3d3 (detector: regex:url_creds)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_config.py:1282
+   - evidence: xoxb-…(16 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-aa49135a913e63e9 (detector: regex:slack_token)
+
+** [INFO] Slack token in git history (historical)
+   - where: tests/gateway/test_config.py
+   - evidence: xoxb-…(16 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-631c26b7412d40c7 (detector: history:regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_kanban_wake_scope.py:46
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-d8717a9249b2bd53 (detector: regex:slack_token)
+
+** [INFO] Slack token in git history (historical)
+   - where: tests/gateway/test_parked_route_refusal_send.py
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-aff2adf9db31df80 (detector: history:regex:slack_token)
+
+** [INFO] Private key material in worktree
+   - where: tests/gateway/test_platform_base.py:858
+   - evidence: PEM header present
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-9ca5ab9a65c5c24f (detector: regex:private_key)
+
+** [INFO] Private key material in git history (historical)
+   - where: tests/gateway/test_platform_base.py
+   - evidence: PEM header present
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-f676c1671badf006 (detector: history:regex:private_key)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:1088
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a9387c95aaecc6b2 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:1151
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-cb200442c36879dd (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:1196
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-9ee09e47501d28a4 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:2177
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-1f895b9c73fbecd2 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:4690
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-3a9b52d490a0efdc (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:4696
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-59a31c5a47922cd9 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack.py:5640
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-061e6283fc10f82b (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_approval_buttons.py:51
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c0dfc272c53693eb (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_channel_session_scope.py:34
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-af16715ffc66b67f (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_clarify_buttons.py:55
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-524b2703f15f400d (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_download_ssrf.py:44
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-8bf5100211a55650 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_ignore_other_user_mentions.py:129
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-294c507a773fb365 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_log_noise.py:222
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-0aeee0d1699c1945 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_peer_agent_smoke.py:107
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-5d33ef578d10a49b (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_require_mention_channels.py:74
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-0262215bb432d3d3 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/gateway/test_slack_socket_reconnect_heal.py:187
+   - evidence: xoxb-…(15 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-26eb35acf0f6aaa6 (detector: regex:slack_token)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/gateway/test_telegram_noise_filter.py:314
+   - evidence: sk-li…(44 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-d26173a2bd206df7 (detector: regex:openai_key)
+
+** [INFO] Anthropic API key in git history (historical)
+   - where: tests/hermes_cli/test_anthropic_model_flow_stale_oauth.py
+   - evidence: sk-an…(34 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-7259436e00741b12 (detector: history:regex:anthropic_key)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_approvals_suggest.py:204
+   - evidence: ghp_1…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c02a520f685fee21 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_approvals_suggest.py:219
+   - evidence: ghp_1…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-324ba397c2323389 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_approvals_suggest.py:238
+   - evidence: ghp_1…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-d3cad00d40860441 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in git history (historical)
+   - where: tests/hermes_cli/test_approvals_suggest.py
+   - evidence: ghp_1…(40 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-f4ecb425d5586a35 (detector: history:regex:github_pat)
+
+** [INFO] Telegram bot token in git history (historical)
+   - where: tests/hermes_cli/test_approvals_suggest.py
+   - evidence: 74129…(46 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-6c6807c66bbb5ba1 (detector: history:regex:telegram_bot)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/hermes_cli/test_debug.py:860
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-8b7881f9cf295ef1 (detector: regex:openai_key)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/hermes_cli/test_debug.py:883
+   - evidence: http://10.0.0.5:3128\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-928aa11a11b497f6 (detector: regex:url_creds)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_doctor_github_token_probe.py:77
+   - evidence: ghp_e…(41 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-61f9f1e163a73877 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_doctor_github_token_probe.py:83
+   - evidence: ghp_e…(41 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-37736a172469c8ab (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_doctor_github_token_probe.py:90
+   - evidence: gho_v…(41 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-e01fb135b9f972f6 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/hermes_cli/test_doctor_github_token_probe.py:104
+   - evidence: ghs_i…(41 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-58a8823316ab862c (detector: regex:github_pat)
+
+** [INFO] Telegram bot token in git history (historical)
+   - where: tests/hermes_cli/test_env_loader.py
+   - evidence: 83565…(46 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-230d75a52f97d992 (detector: history:regex:telegram_bot)
+
+** [INFO] Telegram bot token in git history (historical)
+   - where: tests/hermes_cli/test_env_sanitize_on_load.py
+   - evidence: 83565…(46 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-29d342b4ac24f30e (detector: history:regex:telegram_bot)
+
+** [INFO] Anthropic API key in worktree
+   - where: tests/hermes_cli/test_quick_commands.py:134
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c5996eb1eef7a5ca (detector: regex:anthropic_key)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/hermes_cli/test_sessions_export_md_cli.py:73
+   - evidence: sk-pr…(48 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a26d203b497c3f67 (detector: regex:openai_key)
+
+** [INFO] Slack token in git history (historical)
+   - where: tests/hermes_cli/test_web_server.py
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-558cef9136bbfee6 (detector: history:regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: tests/manual/cron_inchannel_dm_e2e.py:51
+   - evidence: xoxb-…(18 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-75b115cdddf595b8 (detector: regex:slack_token)
+
+** [INFO] Anthropic API key in git history (historical)
+   - where: tests/run_agent/test_run_agent.py
+   - evidence: sk-an…(40 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-57f80ecf32697d98 (detector: history:regex:anthropic_key)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/scripts/test_release_handoff.py:224
+   - evidence: https://cdn.example/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-df44645b2e79f62b (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:32
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-4d7ac6f037423fe5 (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:50
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-a52bbbfabea0bc4c (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:67
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-c449b847c451f901 (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:69
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-c2e65fc410f40618 (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:70
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-448d3ef979c3f9f0 (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:71
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-e63e975c5318c9aa (detector: regex:url_creds)
+
+** [INFO] URL with embedded credentials in worktree
+   - where: tests/skills/test_github_credential_token.py:74
+   - evidence: https://github.com\n/… (credentials in URL redacted)
+   - fix: strip credentials from the remote URL (git remote set-url), rotate the token
+   - id: VH-769eb106e8e3d082 (detector: regex:url_creds)
+
+** [INFO] GitHub classic personal access token in git history (historical)
+   - where: tests/slave_cli/test_approvals_suggest.py
+   - evidence: ghp_1…(40 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-228716352c2229c1 (detector: history:regex:github_pat)
+
+** [INFO] Telegram bot token in git history (historical)
+   - where: tests/test_env_sanitize_on_load.py
+   - evidence: 83565…(46 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-74696891ba115067 (detector: history:regex:telegram_bot)
+
+** [INFO] Slack token in git history (historical)
+   - where: tests/test_iron_proxy.py
+   - evidence: xoxb-…(16 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-9006e6b3f1387a3a (detector: history:regex:slack_token)
+
+** [INFO] Anthropic API key in git history (historical)
+   - where: tests/tools/test_browser_secret_exfil.py
+   - evidence: sk-an…(37 chars)
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-89cbe56034d56c75 (detector: history:regex:anthropic_key)
+
+** [INFO] Private key material in git history (historical)
+   - where: tests/tools/test_delegated_output_redaction.py
+   - evidence: PEM header present
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-93313bd07abdf03c (detector: history:regex:private_key)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/tools/test_mcp_tool.py:1500
+   - evidence: ghp_x…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a4dfdc2f6882e2e2 (detector: regex:github_pat)
+
+** [INFO] GitHub classic personal access token in worktree
+   - where: tests/tools/test_mcp_tool.py:1572
+   - evidence: ghp_x…(40 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-f4f8db4c0bd3a695 (detector: regex:github_pat)
+
+** [INFO] AWS access key id in worktree
+   - where: tests/tools/test_mcp_tool.py:1478
+   - evidence: AKIAI…(20 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-2d4990ef1ba9c4ab (detector: regex:aws_key_id)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/tui_gateway/test_turn_finished_failure_cause.py:196
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-951ee085d057277c (detector: regex:openai_key)
+
+** [INFO] OpenAI-style API key in worktree
+   - where: tests/tui_gateway/test_turn_finished_failure_cause.py:205
+   - evidence: sk-pr…(44 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-e922f8e1db6ca272 (detector: regex:openai_key)
+
+** [INFO] Private key material in git history (historical)
+   - where: tests/wisdom/test_agent_led_boundaries.py
+   - evidence: PEM header present
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-4db7fac400e32a83 (detector: history:regex:private_key)
+
+** [INFO] Private key material in git history (historical)
+   - where: tests/wisdom/test_local_security.py
+   - evidence: PEM header present
+   - fix: rotate the credential; purge from history (git filter-repo) or accept risk if token already dead
+   - id: VH-706c8f232d0d7d53 (detector: history:regex:private_key)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/docs/guides/automation-blueprints.md:91
+   - evidence: secret - your-…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-6322ad07e6903955 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/docs/guides/webhook-github-pr-review.md:51
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-5b07a02f5209894f (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: SECRET
+   - where: website/docs/guides/webhook-github-pr-review.md:160
+   - evidence: SECRET - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-7148ff67f9baa6ad (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/docs/guides/webhook-github-pr-review.md:216
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c71933564d1d027d (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/reference/slash-commands.md:206
+   - evidence: api_key - ${THE…(16 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-1b0472299253a118 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/configuring-models.md:349
+   - evidence: api_key - ${THE…(16 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-ee4684fc97f74209 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: client_secret
+   - where: website/docs/user-guide/features/mcp.md:258
+   - evidence: client_secret - ${ASA…(22 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-0bf74bd6e9ef65a3 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: client_secret
+   - where: website/docs/user-guide/features/mcp.md:416
+   - evidence: client_secret - <your…(26 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-d7f6e42e558ff444 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/features/web-dashboard.md:777
+   - evidence: secret - <32+ …(33 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-828a595caa2d030c (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: apiKey
+   - where: website/docs/user-guide/messaging/qqbot.md:86
+   - evidence: apiKey - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c24e790ee8a1e92a (detector: regex:generic_secret)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:959
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c621bd6bb74a0934 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:959
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c621bd6bb74a0934 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:959
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-c621bd6bb74a0934 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:970
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-881a5f6ba6172efd (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:970
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-881a5f6ba6172efd (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:986
+   - evidence: xoxb-…(25 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-42af15f5bd543303 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/docs/user-guide/messaging/slack.md:211
+   - evidence: xoxb-…(24 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-6f00b289d0f35c69 (detector: regex:slack_token)
+
+** [INFO] Possible hard-coded secret assignment: client_secret
+   - where: website/docs/user-guide/messaging/teams-meetings.md:110
+   - evidence: client_secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4ef4f1d1fab6e2a0 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/docs/user-guide/messaging/webhooks.md:324
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-5eac779a2f760bd5 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-guidance.md:306
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-14552a5813b9c214 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-instructor.md:362
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-29fce85b84027655 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-instructor.md:380
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-a7eee1238dcc5622 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-pinecone.md:73
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4ae80ac3901e8fec (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-qdrant.md:447
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-df99b6c678bf6971 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-research-dspy.md:313
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4b4785626da92f51 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/docs/user-guide/skills/optional/mlops/mlops-research-dspy.md:325
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-bb7049cb54fbccaa (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/guides/automation-blueprints.md:91
+   - evidence: secret - your-…(18 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-6daac362879eb372 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/guides/webhook-github-pr-review.md:51
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c08856a2362e9902 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: SECRET
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/guides/webhook-github-pr-review.md:160
+   - evidence: SECRET - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-4467ebe5b22248d8 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/guides/webhook-github-pr-review.md:208
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-534e2e39e43f0d70 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: apiKey
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/qqbot.md:85
+   - evidence: apiKey - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-c1d382ec455e6496 (detector: regex:generic_secret)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:475
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a5cdf724a21f8368 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:475
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a5cdf724a21f8368 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:475
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-a5cdf724a21f8368 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:486
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-44c1e630aeca59a2 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:486
+   - evidence: xoxb-…(21 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-44c1e630aeca59a2 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:502
+   - evidence: xoxb-…(25 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-22b0dfc2717d68c6 (detector: regex:slack_token)
+
+** [INFO] Slack token in worktree
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/slack.md:178
+   - evidence: xoxb-…(24 chars)
+   - fix: rotate the credential, purge from history (git filter-repo), move to vault-sealed repo secrets
+   - id: VH-e13295a1379d58f6 (detector: regex:slack_token)
+
+** [INFO] Possible hard-coded secret assignment: client_secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/teams-meetings.md:103
+   - evidence: client_secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-81620b888b980ade (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: secret
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/messaging/webhooks.md:284
+   - evidence: secret - your-…(24 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-27dd8a6143731c5a (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-guidance.md:293
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-1a198483ef74e249 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-guidance.md:302
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-3bbfdf943ece13ac (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-inference-outlines.md:245
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-44d25486c2d27e2d (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-instructor.md:362
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-af09ff66ebcfdcc2 (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-instructor.md:380
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-03e8f87cdc4c93fc (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-pinecone.md:71
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-68d41fac0a4b53ea (detector: regex:generic_secret)
+
+** [INFO] Possible hard-coded secret assignment: api_key
+   - where: website/i18n/zh-Hans/docusaurus-plugin-content-docs/current/user-guide/skills/optional/mlops/mlops-qdrant.md:439
+   - evidence: api_key - your-…(12 chars)
+   - fix: verify; if real, move to env/vault; keep fixtures clearly named
+   - id: VH-13fd9076f121c9ad (detector: regex:generic_secret)
+
+* spacemacs-android (6)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/elisp_test.yml:39
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-6fe52705b962c417 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/elisp_test.yml:47
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-fc10dac59ee674df (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/elisp_test.yml:55
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-b6aee5c80b176923 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: jcs090218/setup-emacs-windows@master
+   - where: .github/workflows/elisp_test.yml:64
+   - evidence: jcs090218/setup-emacs-windows@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-9fc34fb774a4d497 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: jcs090218/setup-emacs-windows@master
+   - where: .github/workflows/elisp_test.yml:72
+   - evidence: jcs090218/setup-emacs-windows@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-92189c1c2e00d7a3 (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: jcs090218/setup-emacs-windows@master
+   - where: .github/workflows/elisp_test.yml:80
+   - evidence: jcs090218/setup-emacs-windows@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-3968bdb08829fd43 (detector: yml:unpinned_action)
+
+* telega.el (4)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/test.yml:19
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-19f8a1f1f1acc6e7 (detector: yml:unpinned_action)
+
+** [LOW] Floating :latest tag
+   - where: etc/Dockerfile:18
+   - evidence: FROM alpine:latest AS builder
+   - fix: pin digests/versions
+   - id: VH-60bcc1d1dd2894c3 (detector: docker:latest)
+
+** [LOW] Floating :latest tag
+   - where: etc/Dockerfile:76
+   - evidence: FROM alpine:latest
+   - fix: pin digests/versions
+   - id: VH-93ad763c01678ac5 (detector: docker:latest)
+
+** [LOW] No USER directive (runs as root)
+   - where: etc/Dockerfile:1
+   - evidence: container defaults to root
+   - fix: add USER for a non-root run user
+   - id: VH-b55cc1508c3b5d50 (detector: docker:no_user)
+
+* tempel-collection (2)
+
+** [MEDIUM] Third-party action not pinned to SHA: purcell/setup-emacs@master
+   - where: .github/workflows/check.yml:26
+   - evidence: purcell/setup-emacs@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-752cce5df7e32cce (detector: yml:unpinned_action)
+
+** [MEDIUM] Third-party action not pinned to SHA: leotaku/elisp-check@master
+   - where: .github/workflows/check.yml:29
+   - evidence: leotaku/elisp-check@master
+   - fix: pin third-party actions to a full commit SHA
+   - id: VH-67142b1eb3d59fb5 (detector: yml:unpinned_action)
+
