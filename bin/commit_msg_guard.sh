@@ -21,11 +21,21 @@
 #   4. BOTH trailers present: `Co-authored-by: <agent/harness>` AND
 #      `Co-authored-by: Khalid Rafi <khaalidrafi@gmail.com>` — the
 #      canonical gmail, no variants (no noreply, no other emails).
+#      Through the z.ai relay the agent/harness trailer is exactly
+#      `Co-authored-by: Z.ai agent <agent@chat.z.ai>`.
 #   5. Author is a model identity MODEL <MODEL@PROVIDER>: well-formed
-#      name <user@host.tld>, never a role/machine/harness name
-#      (unknown, Z User, Lead Desk, agent-team-ci, z.ai-agent, ...).
+#      name <user@provider> (provider may be dot-less), never a
+#      role/machine/harness name
+#      (unknown, Z User, Lead Desk, agent-team-ci, z.ai-agent,
+#      Z.ai agent, ...).
 #   Exception: commits authored by Khalid himself (khaalidrafi@gmail.com)
 #   are the human's own work — rules 4/5 do not apply to them.
+#
+# Owner correction 2026-11-15 #hq (identity law): the z.ai relay identity
+# is `Z.ai agent <agent@chat.z.ai>` — the stale forms (`z.ai-agent
+# <noreply@z.ai>`, `<z.ai-agent@z.ai>`) are violations, not variants:
+# a trailer carrying them FAILS, and the relay name (old or new) is
+# never a commit AUTHOR.
 #
 # Usage: commit_msg_guard.sh <git-range>
 #   e.g. commit_msg_guard.sh origin/ai/main..HEAD
@@ -55,8 +65,13 @@ RANGE="${1:?usage: commit_msg_guard.sh <git-range>}"
 BANNED_RE='^(ci[-_ ]?(turn|chain)|wip\b|progress\b|misc\b|various\b|done\b|temp\b|tmp\b|changes\b|commit\b|stall=[0-9])'
 CI_MACHINE_RE='agent-team-ci@users\.noreply\.github\.com'
 # Rule 5: names that are roles/machines/harnesses, never models
-# (each of these was actually observed in the 2026-11-07 audit).
-NONMODEL_NAME_RE='^(unknown|z user|lead desk|lead-desk|agent-team-ci|z\.ai-agent)$'
+# (each of these was actually observed in the 2026-11-07 audit;
+# `z.ai agent` joined the list with the 2026-11-15 relay rename —
+# the relay identity is trailer-only, never an author).
+NONMODEL_NAME_RE='^(unknown|z user|lead desk|lead-desk|agent-team-ci|z\.ai-agent|z\.ai agent)$'
+# Owner correction 2026-11-15: stale z.ai relay identity — old name
+# (`z.ai-agent`) or old email (`noreply@z.ai`, `z.ai-agent@z.ai`).
+STALE_RELAY_RE='(z\.ai[-_]agent|noreply@z\.ai)'
 OWNER_EMAIL='khaalidrafi@gmail.com'
 KHALID_TRAILER_RE='^co-authored-by: Khalid Rafi <khaalidrafi@gmail\.com>[[:space:]]*$'
 
@@ -139,14 +154,27 @@ while IFS= read -rd $'\x1e' record; do
     if [ "${trailers:-0}" -lt 2 ]; then
       reasons="${reasons}needs BOTH trailers (agent/harness + owner), found ${trailers:-0}; "
     fi
+    # Owner correction 2026-11-15: the relay trailer is exactly
+    # `Co-authored-by: Z.ai agent <agent@chat.z.ai>`; a trailer carrying
+    # a stale relay form (old name or old email) is a violation.
+    if printf '%s\n' "$body" | grep -qiE "^co-authored-by:.*${STALE_RELAY_RE}"; then
+      reasons="${reasons}stale z.ai relay trailer (law: Co-authored-by: Z.ai agent <agent@chat.z.ai>); "
+    fi
     if printf '%s' "$an" | grep -qiE "$NONMODEL_NAME_RE"; then
       reasons="${reasons}author is a role/machine/harness name, not a model (law: MODEL <MODEL@PROVIDER>); "
     fi
-    if ! printf '%s' "$ae" | grep -qE '^[^ <>,]+@[^ <>,]+\.[A-Za-z]{2,}$'; then
+    # Owner correction 2026-11-15 #hq: seat providers may be dot-less
+    # (e.g. ling-3.1-flash@antling) — MODEL <MODEL@PROVIDER> needs a
+    # real model id + provider, not a host.tld; 1-char users (the
+    # container's z@...) still fail.
+    if ! printf '%s' "$ae" | grep -qE '^[^ <>,@]{2,}@[^ <>,@]{2,}$'; then
       reasons="${reasons}author email malformed (law: MODEL <MODEL@PROVIDER>); "
     fi
     if printf '%s' "$ae" | grep -qE "$CI_MACHINE_RE"; then
       reasons="${reasons}author is the CI machine identity; "
+    fi
+    if printf '%s' "$ae" | grep -qiE "$STALE_RELAY_RE"; then
+      reasons="${reasons}author email is the stale z.ai relay identity (relay is trailer-only); "
     fi
   fi
   if [ -n "$reasons" ]; then
