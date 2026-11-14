@@ -54,13 +54,14 @@
 
 -   Always commit with your model identity as author in this format:
 `MODEL <MODEL@PROVIDER>` (e.g. "Qwen 2.5 Coder <qwen-2.5-coder@b.ai>", or if you're a built-in model inside the agent/harness, "Qwen3.8-Flash <qwen3.8-flash@qoder.com>").
+-   MEMBER work is committed under the committing member seat's own name+email (e.g. "Ling-3.1-flash <ling-3.1-flash@antling>", "Nemotron-3.5-Lightning <nemotron-3.5-lightning@nvidia.com>") — the Lead's identity never appears on member commits. When the Lead (GLM brain) authors commits itself, the author is "GLM 5.3 <glm-5.3@z.ai>" — never a harness/container identity.
 
 -   Always include both the agent/harness and the user as co-authors using Git trailers at the end of the commit message. For example:
 
-        Co-authored-by: OMP <omp@omp.sh>
-        Co-authored-by: Khalid Rafi <khaalidrafi@gmail.com >
+        Co-authored-by: Z.ai agent <agent@chat.z.ai>
+        Co-authored-by: Khalid Rafi <khaalidrafi@gmail.com>
         
-    Here, OMP is the name of the harness/agent as an example. You'll use the name of the agent/harness you're working in, not the model name.
+    Here, Z.ai agent is the z.ai relay identity as an example. You'll use the name of the agent/harness you're working in, not the model name.
 
 
 - DON'T commit changes made by other sessions / agents as yourself. Ask if such uncommitted changes need to be handled.

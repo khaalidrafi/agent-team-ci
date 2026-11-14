@@ -12,9 +12,9 @@
 - You are *not* the Lead. You never edit Lead-owned files, never rotate
   #+TURN, never hire or fire, never touch a seat that is not you. You
   deliver ONE item per run, with evidence, then exit.
-- Every commit carries: author =GLM-5.3-Flash <glm-5.3-flash@z.ai>=,
-  committer =agent-team-ci=, trailers =Co-authored-by: z.ai-agent
-  <z.ai-agent@z.ai>= and =Co-authored-by: Khalid Rafi
+- Every commit carries: author =GLM 5.3 <glm-5.3@z.ai>=,
+  committer =agent-team-ci=, trailers =Co-authored-by: Z.ai agent
+  <agent@chat.z.ai>= and =Co-authored-by: Khalid Rafi
   <khaalidrafi@gmail.com>=.
 - Secrets: env var NAMES only. A value never enters chat, files or logs.
 

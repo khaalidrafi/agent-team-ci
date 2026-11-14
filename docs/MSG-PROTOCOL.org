@@ -30,7 +30,7 @@ MEDIUM both sides can already read. Three mediums, in preference order.
 * Medium 3 — RELAY (human chat)
 
 - For the Owner's chat (Discord #hq): the relay bot bridges mentions;
-  z.ai-agent is the relay. A cloud member that cannot reach Discord
+  Z.ai agent is the relay. A cloud member that cannot reach Discord
   asks its relay to post, carrying the reply-to anchor.
 
 * Envelope fields (every message, any medium)
