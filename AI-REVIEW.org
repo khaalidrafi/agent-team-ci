@@ -17,3 +17,27 @@ a TODO tree, kept current with the code that prompted it.
   from; drift here propagates to every team at once.
 - TODO README.md is the only doc; per owner preference (Org over
   Markdown) the key sections should move to an Org file.
+
+* Identity-law correction — 2026-11-15 (seat: Platform/CI, Qwen3.8-Flash)
+
+- WHAT: Owner identity-law corrections applied surgically — z.ai relay
+  identity renamed to =Z.ai agent <agent@chat.z.ai>= (AGENTS.md +
+  embedded copy in TEAMIFY-COMMON-PROMPT.org, TODOS-CRON-PROMPT.org,
+  MSG-PROTOCOL.org); Lead (GLM brain) author fixed to
+  =GLM 5.3 <glm-5.3@z.ai>=; member-seat authorship rule added next to
+  the existing authorship bullets.
+- REVIEW =bin/commit_msg_guard.sh= — new STALE_RELAY_RE rejects the old
+  relay trailer/email; =Z.ai agent= added to the non-model author ban;
+  author-email regex relaxed to allow dot-less seat providers
+  (=ling-3.1-flash@antling=, Owner's own example) while still failing
+  =z@container=.
+- EVIDENCE: fixture runs in /tmp (guard passes canonical member/Lead
+  shapes; fails old trailers, relay-as-author, stale relay email,
+  container identity; bad range still exit 2; Khalid exempt) — all
+  green before commit.
+- NOT fixed (out of scope, flagged for the Lead): self-check.yml
+  pass-case fixtures (lines 57-62) pre-date rules 4/5 and carry no
+  trailers, so that workflow step fails if ever run (it only triggers
+  on =main= pushes / PRs, not =ai/main=); docker/harness/opencode.json
+  still names the =glm-5.3-flash-free= model endpoint (a real model id,
+  not law text — renaming it would break the harness).
