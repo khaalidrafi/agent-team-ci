@@ -87,13 +87,22 @@ RUN git init -q /opt/modern-web-guidance \
 # Kit skills (Owner order 2026-11-12 #hq: "add cloudflare security audit
 # skill"): ci/skills is COPYed into the SHARED base so every agent body
 # carries the whole pack; the submodule pointer pins skill versions per
-# commit (no network fetch needed). First pack:
+# commit (no network fetch needed). Pack contents:
 # cloudflare-security-audit — static wrangler/.dev.vars/_headers/token
-# hygiene audit, run before any Cloudflare deploy; exit 1 = CRITICAL/HIGH.
+#   hygiene audit, run before any Cloudflare deploy; exit 1 = CRITICAL/HIGH.
+# vulnerability-harness — our fleet audit orchestrator + scanner.
+# typesafe-ai — Owner order 2026-11-15 #hq: "Add typesafe skill to docker.
+#   You and all team members should use it as suitable for efficiency."
+#   Vendored verbatim from github.com/typesafe-ai/skills at pinned SHA
+#   302eea662c54bca6730873fe245bec1d69ebc23d (MIT); System One judgments
+#   (Jev) via POST /v1/systemone — see the TypeSafe section of ci/AGENTS.md.
 COPY ci/skills /opt/agent-team-ci-skills
 RUN chmod -R a+rX /opt/agent-team-ci-skills \
  && test -f /opt/agent-team-ci-skills/cloudflare-security-audit/SKILL.md \
- && test -x /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py
+ && test -x /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py \
+ && test -f /opt/agent-team-ci-skills/typesafe-ai/SKILL.md \
+ && test -f /opt/agent-team-ci-skills/typesafe-ai/LICENSE \
+ && test -x /opt/agent-team-ci-skills/typesafe-ai/scripts/jev
 
 # Cloudflare security-audit-skill (Owner order 2026-11-12 #hq: "build our
 # own vulnerability harness" after blog.cloudflare.com/
