@@ -1,0 +1,29 @@
+{
+  "evals": [
+    {
+      "id": "clean-repo-exits-zero",
+      "prompt": "Run the cloudflare security audit on a repo with no wrangler config and no static site dir. What does it report and what is the exit code?",
+      "expect": "CLEAN report, exit code 0"
+    },
+    {
+      "id": "plaintext-var-secret-flags-high",
+      "prompt": "A wrangler.jsonc declares vars: { \"API_TOKEN\": \"abc123\" }. Run the audit. What severity fires and what is the required fix?",
+      "expect": "HIGH — secret-shaped var in plaintext vars; fix = move to `wrangler secret put` / repo secrets"
+    },
+    {
+      "id": "dev-vars-committed-flags-high",
+      "prompt": "A repo has .dev.vars committed at the root. Run the audit. What severity fires and what are the two required actions?",
+      "expect": "HIGH — gitignore it and rotate any value inside"
+    },
+    {
+      "id": "static-dir-without-headers-flags-medium",
+      "prompt": "A Pages-style repo has dist/index.html but no _headers file. Run the audit. What severity fires and what is the fix?",
+      "expect": "MEDIUM — add a _headers file with CSP + HSTS (or set them in the Worker's response headers)"
+    },
+    {
+      "id": "critical-token-blocks-deploy",
+      "prompt": "A workflow line reads CLOUDFLARE_API_TOKEN=d41d8cd98f00b204e9800998ecf8427e. Run the audit. What severity fires, what is the exit code, and what must happen before the next deploy?",
+      "expect": "CRITICAL — exit 1; rotate the token NOW, then reference ${{ secrets.CLOUDFLARE_API_TOKEN }}"
+    }
+  ]
+}

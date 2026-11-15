@@ -67,6 +67,52 @@ RUN mkdir -p /opt/agent-team \
 COPY ci/docker/harness/team-chat /usr/local/bin/team-chat
 RUN chmod +x /usr/local/bin/team-chat
 
+# Modern Web Guidance skills pack (Owner order 2026-11-11 #hq: "Add
+# GoogleChrome/modern-web-guidance to your docker harness"). Baked into
+# the SHARED base so every agent body gets it, at a pinned upstream SHA
+# (same pinning law as AGENT_TEAM_EL_SHA); MWG_SHA bumps with the kit
+# pointer bump. Agents consult /opt/modern-web-guidance/skills for
+# modern web platform work (CSS/HTML/DOM/JS APIs) and run
+# `npx modern-web-guidance@latest search|retrieve|legacy-scan` when
+# network is up — see the Environment section of ci/AGENTS.md.
+ARG MWG_SHA=4dd968349e54ca45a05dd5c818fb035c9054b022
+RUN git init -q /opt/modern-web-guidance \
+ && git -C /opt/modern-web-guidance remote add origin https://github.com/GoogleChrome/modern-web-guidance.git \
+ && git -C /opt/modern-web-guidance fetch -q --depth 1 origin "${MWG_SHA}" \
+ && git -C /opt/modern-web-guidance checkout -q --detach FETCH_HEAD \
+ && rm -rf /opt/modern-web-guidance/.git \
+ && chmod -R a+rX /opt/modern-web-guidance \
+ && test -d /opt/modern-web-guidance/skills && test -f /opt/modern-web-guidance/README.md
+
+# Kit skills (Owner order 2026-11-12 #hq: "add cloudflare security audit
+# skill"): ci/skills is COPYed into the SHARED base so every agent body
+# carries the whole pack; the submodule pointer pins skill versions per
+# commit (no network fetch needed). First pack:
+# cloudflare-security-audit — static wrangler/.dev.vars/_headers/token
+# hygiene audit, run before any Cloudflare deploy; exit 1 = CRITICAL/HIGH.
+COPY ci/skills /opt/agent-team-ci-skills
+RUN chmod -R a+rX /opt/agent-team-ci-skills \
+ && test -f /opt/agent-team-ci-skills/cloudflare-security-audit/SKILL.md \
+ && test -x /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py
+
+# Cloudflare security-audit-skill (Owner order 2026-11-12 #hq: "build our
+# own vulnerability harness" after blog.cloudflare.com/
+# build-your-own-vulnerability-harness/). The released CF skill is the
+# deep-methodology companion (attack classes, hunting prompts, findings
+# schema + mechanical validators); our own harness lives in
+# ci/skills/vulnerability-harness (orchestrator + fleet scanner).
+# Pinned like MWG; CF_SAS_SHA bumps with the kit pointer bump.
+ARG CF_SAS_SHA=c1c8a8c1471069fb0e188eeaff69b8e8db6564a8
+RUN git init -q /opt/security-audit-skill \
+ && git -C /opt/security-audit-skill remote add origin https://github.com/cloudflare/security-audit-skill.git \
+ && git -C /opt/security-audit-skill fetch -q --depth 1 origin "${CF_SAS_SHA}" \
+ && git -C /opt/security-audit-skill checkout -q --detach FETCH_HEAD \
+ && rm -rf /opt/security-audit-skill/.git \
+ && chmod -R a+rX /opt/security-audit-skill \
+ && test -f /opt/security-audit-skill/skills/security-audit/SKILL.md \
+ && test -f /opt/security-audit-skill/skills/security-audit/report-schema.json \
+ && test -f /opt/security-audit-skill/skills/security-audit/validate-findings.cjs
+
 STOPSIGNAL SIGTERM
 
 # ===========================================================================
