@@ -30,6 +30,17 @@ This section explains the automation that runs the team, in plain words.
     - #+PAUSE-AFTER-TODO — ON or OFF (ON by default; see below).
     - #+CHAIN-PAUSE — ON means the automation takes a break.
 
+- BOOKKEEPING-COMMIT LAW (Owner 2026-11-13 #hq: "Is it automated?
+  ... such commits should stay squashed ... get rid of this"): chain
+  runs NEVER commit CONTROL.org / TEAM-CONTROL.org state — no stall
+  bumps, no verdict markers, no turn rotations, no pause arms, not even
+  milestone commits. That state lives in repo Actions variables
+  (CHAIN_STALL, CHAIN_TURN, CHAIN_LAST_VERDICT, CHAIN_LAST_CHAT,
+  CHAIN_LAST_BLOCKED, CHAIN_PAUSE); reads prefer the variable and fall
+  back to the control file. CONTROL.org changes are Lead commits only.
+  The 2,100-commit stall-count flood in agent-team.el came from
+  per-run control commits — they are forbidden now.
+
 - What happens in one cycle, in order:
   1. test — the project's tests run. Work only counts when they pass.
   2. probe — a tiny check that the next member's tool is reachable.
