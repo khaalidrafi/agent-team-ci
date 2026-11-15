@@ -42,10 +42,16 @@
 # members code? investigate and fix"): commits authored by the LEAD
 # brain identity (glm-5.3@z.ai, legacy glm-5.3-flash@z.ai) must carry a
 # LEAD-VERB subject (board:/merge:/ci:/deploy:/dispatch:/review:/ops:/
-# team:/law:/docs:/brand:/harness:/audit:). Any other subject under the
-# Lead identity is a violation — the Lead manages, reviews, merges and
-# deploys; CODE is written by member seats under the seat's OWN identity
-# (kit 6300f63: "the Lead's identity never appears on member commits").
+# team:/law:/docs:/brand:/harness:/audit:/backend:). Any other subject
+# under the Lead identity is a violation — the Lead manages, reviews,
+# merges and deploys; CODE is written by member seats under the seat's
+# OWN identity (kit 6300f63: "the Lead's identity never appears on
+# member commits").
+# AMENDED same day (Owner order #2 2026-11-15: "Acting Lead + Backend
+# Engineer AGAIN"): the Lead desk again carries the Backend Engineer
+# role, so `backend:` joins the lead verbs — the Lead's OWN Django/BE
+# engineering commits use that prefix. Frontend/storefront/admin-client
+# code stays seat-authored.
 # Found live: 160 Lead-authored CODE commits + 32 Z User commits on
 # freshorama/website ai/main (container default git identity was the
 # banned machine identity itself).
@@ -85,7 +91,7 @@ NONMODEL_NAME_RE='^(unknown|z user|lead desk|lead-desk|agent-team-ci|z\.ai-agent
 # Rule 7: the Lead brain identity (email-keyed; seat variants like
 # glm-5.3-opus-2@z.ai do NOT match) may only carry lead-verb subjects.
 LEAD_EMAIL_RE='^(glm-5\.3@z\.ai|glm-5\.3-flash@z\.ai)$'
-LEAD_VERB_RE='^(board|merge|ci|deploy|dispatch|review|ops|team|law|docs|brand|harness|audit|guard|skill)[:(]'
+LEAD_VERB_RE='^(board|merge|ci|deploy|dispatch|review|ops|team|law|docs|brand|harness|audit|guard|skill|backend)[:(]'
 # Owner correction 2026-11-15: stale z.ai relay identity — old name
 # (`z.ai-agent`) or old email (`noreply@z.ai`, `z.ai-agent@z.ai`).
 STALE_RELAY_RE='(z\.ai[-_]agent|noreply@z\.ai)'
