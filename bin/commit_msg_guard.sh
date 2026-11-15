@@ -37,6 +37,19 @@
 # a trailer carrying them FAILS, and the relay name (old or new) is
 # never a commit AUTHOR.
 #
+# Rule 7 (Owner order 2026-11-15, freshorama/website: "are our commits
+# authored by the lead for most of them, tho lead doesn't code and team
+# members code? investigate and fix"): commits authored by the LEAD
+# brain identity (glm-5.3@z.ai, legacy glm-5.3-flash@z.ai) must carry a
+# LEAD-VERB subject (board:/merge:/ci:/deploy:/dispatch:/review:/ops:/
+# team:/law:/docs:/brand:/harness:/audit:). Any other subject under the
+# Lead identity is a violation — the Lead manages, reviews, merges and
+# deploys; CODE is written by member seats under the seat's OWN identity
+# (kit 6300f63: "the Lead's identity never appears on member commits").
+# Found live: 160 Lead-authored CODE commits + 32 Z User commits on
+# freshorama/website ai/main (container default git identity was the
+# banned machine identity itself).
+#
 # Usage: commit_msg_guard.sh <git-range>
 #   e.g. commit_msg_guard.sh origin/ai/main..HEAD
 #
@@ -69,6 +82,10 @@ CI_MACHINE_RE='agent-team-ci@users\.noreply\.github\.com'
 # `z.ai agent` joined the list with the 2026-11-15 relay rename —
 # the relay identity is trailer-only, never an author).
 NONMODEL_NAME_RE='^(unknown|z user|lead desk|lead-desk|agent-team-ci|z\.ai-agent|z\.ai agent)$'
+# Rule 7: the Lead brain identity (email-keyed; seat variants like
+# glm-5.3-opus-2@z.ai do NOT match) may only carry lead-verb subjects.
+LEAD_EMAIL_RE='^(glm-5\.3@z\.ai|glm-5\.3-flash@z\.ai)$'
+LEAD_VERB_RE='^(board|merge|ci|deploy|dispatch|review|ops|team|law|docs|brand|harness|audit|guard|skill)[:(]'
 # Owner correction 2026-11-15: stale z.ai relay identity — old name
 # (`z.ai-agent`) or old email (`noreply@z.ai`, `z.ai-agent@z.ai`).
 STALE_RELAY_RE='(z\.ai[-_]agent|noreply@z\.ai)'
@@ -175,6 +192,13 @@ while IFS= read -rd $'\x1e' record; do
     fi
     if printf '%s' "$ae" | grep -qiE "$STALE_RELAY_RE"; then
       reasons="${reasons}author email is the stale z.ai relay identity (relay is trailer-only); "
+    fi
+    # Rule 7 (Owner 2026-11-15): the Lead does not code. A commit under
+    # the Lead identity must be lead-desk work (board/merge/ci/review/
+    # deploy dispatch/law/docs), never feature or fix code — that belongs
+    # to a member seat commit under the seat's own identity.
+    if printf '%s' "$ae" | grep -qiE "$LEAD_EMAIL_RE" && ! printf '%s' "$subj" | grep -qiE "$LEAD_VERB_RE"; then
+      reasons="${reasons}Lead-authored commit without a lead-verb subject (law: the Lead does not code — code commits belong to member seats under their own identity); "
     fi
   fi
   if [ -n "$reasons" ]; then
