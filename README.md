@@ -33,6 +33,9 @@ bin/commit_msg_guard.sh    commit-substance gate (bans "ci turn"/"stall"-style s
 docker/harness/Dockerfile  canonical agent-harness image (bodies preinstalled, laws baked/mounted)
 docker/harness/*.json|yaml shared agent configs (opencode providers, goose)
 templates/INTEGRATION.md   the adoption contract — read before wiring
+skills/                    kit skills pack — baked to /opt/agent-team-ci-skills
+                           for every body: cloudflare-security-audit,
+                           vulnerability-harness, typesafe-ai (Jev judgments)
 .github/workflows/self-check.yml  proves the kit before anyone consumes it
 ```
 
