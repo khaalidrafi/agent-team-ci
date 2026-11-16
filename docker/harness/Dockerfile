@@ -108,7 +108,7 @@ RUN git init -q /opt/modern-web-guidance \
 # slave-agent-builder — Owner order 2026-11-16 #hq: "write a skill for
 #   agents to build personalized assistants with slave agent." Vendored
 #   from khaalidrafi/slave-agent skills/slave-agent-builder/ @ pinned
-#   commit 262cf67 (canonical copy lives in the product repo; re-vendor
+#   commit 6a7dc63 (canonical copy lives in the product repo; re-vendor
 #   there first, then here, on platform spec changes).
 COPY ci/skills /opt/agent-team-ci-skills
 RUN chmod -R a+rX /opt/agent-team-ci-skills \
