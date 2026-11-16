@@ -81,10 +81,12 @@ thumb:
   settings shape in specs/005 (base_url, path layout, filter names,
   status vocabulary, page shape). Money never routes through the
   model; counts carry provenance.
-- Panel embedding: follow specs/014. The default transport is the
-  OpenAI-compatible serve surface; ACP when tool-level control is
-  wanted. The panel side provides hosting, the user-to-profile map,
-  RBAC, and secrets as env var names.
+- Panel embedding: follow specs/014. The embedding is in-process: the
+  panel depends on the package with its agent extra and feeds the
+  profile or brand artifact. ACP is the first-class external surface
+  when tool-level control is wanted. The serve endpoint is retired as
+  the integration path. The panel side provides hosting, the
+  user-to-profile map, RBAC, and secrets as env var names.
 - Memory and reminders ride the Org substrate; a human can read and
   edit the state.
 
