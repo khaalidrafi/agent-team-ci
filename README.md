@@ -35,7 +35,10 @@ docker/harness/*.json|yaml shared agent configs (opencode providers, goose)
 templates/INTEGRATION.md   the adoption contract — read before wiring
 skills/                    kit skills pack — baked to /opt/agent-team-ci-skills
                            for every body: cloudflare-security-audit,
-                           vulnerability-harness, typesafe-ai (Jev judgments)
+                           vulnerability-harness, typesafe-ai (Jev judgments),
+                           code-simplification, pstack (Lauren Tan's
+                           rigorous-engineering stack, vendored from
+                           cursor/plugins at pinned SHA)
 .github/workflows/self-check.yml  proves the kit before anyone consumes it
 ```
 
