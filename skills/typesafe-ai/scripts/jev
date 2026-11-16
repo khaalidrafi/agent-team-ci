@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# jev — minimal TypeSafe System One client for the agent-team kit.
+#
+# Reads ONE batched request (JSON with model/state/questions) from stdin
+# or -f FILE, posts it to /v1/systemone, prints the answers object.
+# ONE call, MANY questions per state — the batching law. A failed call is
+# an ERROR (nonzero exit), never a "no" answer.
+#
+# Env:
+#   TYPESAFE_API_KEY   direct-lane key (repo secret / vault; never baked)
+#   TYPESAFE_BASE_URL  default https://api.typesafe.ai
+#                      (Owner gateway: https://ai.khalidrafi.tech + gateway key)
+#   JEV_MODEL          default jev-1.14.0 — pin a DATED version, never
+#                      jev-latest; bump deliberately after a live probe
+#   GOMODEL_MASTER_KEY gateway key used when TYPESAFE_API_KEY is unset
+#                      (gateway lane auto-selected)
+#
+# Example request file:
+#   {"state": {"ticket": "..."},
+#    "questions": {"is_frustrated": {"type": "noul",
+#                    "instructions": "Does the customer sound frustrated?"}}}
+set -euo pipefail
+
+FILE=${1:-}
+if [ -n "$FILE" ] && [ "$FILE" != "-" ]; then
+  REQ=$(cat "$FILE")
+else
+  REQ=$(cat)
+fi
+
+BASE=${TYPESAFE_BASE_URL:-https://api.typesafe.ai}
+MODEL=${JEV_MODEL:-jev-1.14.0}
+
+if [ -n "${TYPESAFE_API_KEY:-}" ]; then
+  AUTH="Authorization: Bearer ${TYPESAFE_API_KEY}"
+elif [ "$BASE" != "https://api.typesafe.ai" ] && [ -n "${GOMODEL_MASTER_KEY:-}" ]; then
+  AUTH="Authorization: Bearer ${GOMODEL_MASTER_KEY}"
+else
+  echo "jev: no credential — set TYPESAFE_API_KEY (direct) or" \
+       "TYPESAFE_BASE_URL+GOMODEL_MASTER_KEY (gateway)" >&2
+  exit 2
+fi
+
+# 90s timeout: slow failover legs must fail loudly, not hang the turn.
+RESP=$(printf '%s' "$REQ" \
+  | jq -c --arg m "$MODEL" '.model = $m' \
+  | curl -fsS --max-time 90 -X POST "$BASE/v1/systemone" \
+      -H "$AUTH" -H "Content-Type: application/json" --data-binary @-)
+
+# Answers only by default; full response (usage included) with JEV_FULL=1.
+if [ "${JEV_FULL:-0}" = "1" ]; then
+  printf '%s\n' "$RESP" | jq .
+else
+  printf '%s\n' "$RESP" | jq '.answers'
+fi
