@@ -96,13 +96,32 @@ RUN git init -q /opt/modern-web-guidance \
 #   Vendored verbatim from github.com/typesafe-ai/skills at pinned SHA
 #   302eea662c54bca6730873fe245bec1d69ebc23d (MIT); System One judgments
 #   (Jev) via POST /v1/systemone — see the TypeSafe section of ci/AGENTS.md.
+# pstack — Owner order 2026-11-16 #hq: "Add Lauren's pstack to our skills
+#   in Docker, and start using it yourself." Vendored verbatim from
+#   github.com/cursor/plugins (Lauren Tan / poteto, pstack v0.15.42, MIT)
+#   at pinned SHA bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7: the full
+#   stack — 58 skills (poteto-mode orchestrator, 23 playbooks, 24
+#   principles, unslop, tdd, technical-writing, statechart, swarm...),
+#   docs/, agents/, automations/. See the pstack section of ci/AGENTS.md
+#   for when each layer applies; bump the pin by re-vendoring from
+#   cursor/plugins main and updating this SHA.
+# slave-agent-builder — Owner order 2026-11-16 #hq: "write a skill for
+#   agents to build personalized assistants with slave agent." Vendored
+#   from khaalidrafi/slave-agent skills/slave-agent-builder/ @ pinned
+#   commit a96fa83 (canonical copy lives in the product repo; re-vendor
+#   there first, then here, on platform spec changes).
 COPY ci/skills /opt/agent-team-ci-skills
 RUN chmod -R a+rX /opt/agent-team-ci-skills \
  && test -f /opt/agent-team-ci-skills/cloudflare-security-audit/SKILL.md \
  && test -x /opt/agent-team-ci-skills/cloudflare-security-audit/scripts/cf_repo_audit.py \
  && test -f /opt/agent-team-ci-skills/typesafe-ai/SKILL.md \
  && test -f /opt/agent-team-ci-skills/typesafe-ai/LICENSE \
- && test -x /opt/agent-team-ci-skills/typesafe-ai/scripts/jev
+ && test -x /opt/agent-team-ci-skills/typesafe-ai/scripts/jev \
+ && test -f /opt/agent-team-ci-skills/pstack/skills/poteto-mode/SKILL.md \
+ && test -f /opt/agent-team-ci-skills/pstack/skills/unslop/SKILL.md \
+ && test -f /opt/agent-team-ci-skills/pstack/plugin.json \
+ && test -f /opt/agent-team-ci-skills/pstack/LICENSE \
+ && test -f /opt/agent-team-ci-skills/slave-agent-builder/SKILL.md
 
 # Cloudflare security-audit-skill (Owner order 2026-11-12 #hq: "build our
 # own vulnerability harness" after blog.cloudflare.com/
