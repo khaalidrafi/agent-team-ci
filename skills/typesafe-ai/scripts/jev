@@ -2,7 +2,8 @@
 # jev — minimal TypeSafe System One client for the agent-team kit.
 #
 # Reads ONE batched request (JSON with model/state/questions) from stdin
-# or -f FILE, posts it to /v1/systemone, prints the answers object.
+# or a bare FILE argument ($1), posts it to /v1/systemone, prints the
+# answers object.
 # ONE call, MANY questions per state — the batching law. A failed call is
 # an ERROR (nonzero exit), never a "no" answer.
 #
