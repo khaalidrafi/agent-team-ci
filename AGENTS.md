@@ -61,7 +61,7 @@
 
 -   Always commit with your model identity as author in this format:
 `MODEL <MODEL@PROVIDER>` (e.g. "Qwen 2.5 Coder <qwen-2.5-coder@b.ai>", or if you're a built-in model inside the agent/harness, "Qwen3.8-Flash <qwen3.8-flash@qoder.com>").
--   MEMBER work is committed under the committing member seat's own name+email (e.g. "Ling-3.1-flash <ling-3.1-flash@antling>", "Nemotron-3.5-Lightning <nemotron-3.5-lightning@nvidia.com>") — the Lead's identity never appears on member commits. When the Lead (GLM brain) authors commits itself, the author is "GLM 5.3 <glm-5.3@z.ai>" — never a harness/container identity.
+-   MEMBER work is committed under the committing member seat's own name+email (e.g. "Ling-3.1-flash <ling-3.1-flash@antling>", "Nemotron-3.5-Lightning <nemotron-3.5-lightning@nvidia.com>") — the Lead's identity never appears on member commits. When the Lead authors commits itself, the author is the acting agent's CURRENT identity, not a law-pinned model string — the model name does not belong to law (Owner 2026-11-18: "Model name doesn't belong to law. Remove that standing law."). Today that identity is "GLM 5.3 Flash <glm-5.3-flash@z.ai>"; it changes automatically with the acting brain, never by amending this law. Never a harness/container identity.
 
 -   Always include both the agent/harness and the user as co-authors using Git trailers at the end of the commit message. For example:
 
