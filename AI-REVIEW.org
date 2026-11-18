@@ -41,3 +41,32 @@ a TODO tree, kept current with the code that prompted it.
   on =main= pushes / PRs, not =ai/main=); docker/harness/opencode.json
   still names the =glm-5.3-flash-free= model endpoint (a real model id,
   not law text — renaming it would break the harness).
+
+* 2026-11-18 — no-reinvention sweep over the Emacs packages (GLM 5.3 Flash)
+
+First enforcement pass of the DON'T REINVENT THE WHEEL law (added
+today, see AGENTS.md).  Method: Package-Requires scan (no s.el /
+f.el / dash.el / ht.el anywhere), utility-shaped private defuns
+audited against built-ins, timer usage audited, manual
+directory-recursion and hand-rolled trim greps.
+
+- FOUND AND FIXED (1): org-auto hand-rolled agenda-file membership
+  =(member (expand-file-name ...) (mapcar #'expand-file-name
+  (org-agenda-files)))=; replaced by Org's own =org-agenda-file-p=
+  (org-auto ai/main decf549, plus =run-with-idle-timer= edit re-arm
+  and =org-map-entries= file-list scope for fire-time liveness, all
+  verified against org.el source).
+- VERIFIED CLEAN: eservo, org-activity, lark-org, telega-org,
+  org-roadmap, unslop.el, agent-shepherd, ox-astro, elwidget,
+  loophabits, agent-team.el, agent-org, org-learn.el, emacs-purple
+  (and the deprecated actlog / android-usage.el).  Notable good
+  calls already in the tree: agent-shepherd uses
+  =org-time-string-to-time= not hand-parsed dates; lark-org uses
+  =format-time-string=; =directory-files-recursively= used where
+  recursion is needed.
+- DELIBERATE NON-BUILT-INS (kept, no Emacs equivalent): eservo's
+  pure-Elisp WebSocket client (Emacs has none built in; external
+  websocket.el would add a dependency), ox-astro's github-slugger
+  port (slug semantics differ from org-link-escape),
+  org-activity's CSV reader (no built-in CSV parser; zero-dep
+  design), loophabits' Loop recurrence math (product formula).
