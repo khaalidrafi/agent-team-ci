@@ -50,7 +50,7 @@ Scored statically here; the CI kit runs the same battery under real
 Candidate outputs graded on behavior, not marketing; grader bugs found
 during this run are recorded above, not hidden.
 
-* Free cohort — 2026-11-07 (Owner: "intern latest free models")
+* Free cohort — 2026-11-07 (Owner order)
 
 Every request ran through THIS harness (scripts/intern_elisp.py, the
 Lead's direct lane) — Owner 2026-11-07 #hq: "You don't make requests
