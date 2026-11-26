@@ -5,6 +5,7 @@
 ## Environment
 
 -   Guix (`master`) on an ASUS X451MA (Intel Celeron, 4 GB RAM). Guix first; Nix as fallback for missing packages.
+-   Android test device: Redmi 8A running AOSPA K4.19 Uvite Beta ROM (Android 14 / API 34, Snapdragon 439 `arm64-v8a`, 2-3 GB RAM).
 -   Be careful with binaries: Guix does not use FHS. Verify that installed binaries work (no "file not found" errors).
 -   `guix system` / `guix home reconfigure` recompiles the local `brix` channel; be patient and never run two instances in parallel. Use `-v` for progress.
 -   Search with modern tools, always: `rg` (not `grep -r`), `fd` (not `find`), and `rg --files` / `fd -t f` for listings. They are faster, they respect `.gitignore`, and they do not stall the machine scanning `/gnu/store`. Never let `find /` or `grep -r /` near a path run: bound searches with `-d`/`--max-depth` and exclude `/gnu/store`, `~/.guix-home`, `~/.cache` etc.
